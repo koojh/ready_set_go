@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://koojh.github.io/ready_set_go/sitemap.xml
