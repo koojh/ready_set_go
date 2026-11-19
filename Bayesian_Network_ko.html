@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>베이지안 네트워크(BN), 코퓰러(Copula), DBN 및 Bui Dam 적용 정리</title>
+  <title>베이지안 네트워크(BN), 코퓰러 적용(NPBN), DBN 및 Bui Dam 정리</title>
 
   <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
   <script>
@@ -22,12 +22,24 @@
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
   <style>
-    /* 목록으로 돌아가기 버튼 */
+    /* 목록으로 돌아가기 및 문서 이동 내비게이션 */
     .back-nav {
       max-width: 960px;
       margin: 0 auto 1.5rem auto;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .back-btn {
@@ -52,7 +64,20 @@
       background-color: #eff6ff;
     }
 
-    /* 문서를 PDF로 인쇄할 때는 뒤로가기 버튼 숨김 */
+    .back-btn.lang-btn {
+      color: #1e3a5f;
+      border-color: #93c5fd;
+      background-color: #eff6ff;
+      font-weight: 600;
+    }
+
+    .back-btn.lang-btn:hover {
+      color: #1d4ed8;
+      border-color: #2563eb;
+      background-color: #dbeafe;
+    }
+
+    /* 문서를 PDF로 인쇄할 때는 내비게이션 숨김 */
     @media print {
       .back-nav {
         display: none;
@@ -158,6 +183,17 @@
 
     nav.toc a:hover {
       text-decoration: underline;
+    }
+
+    section a {
+      color: var(--secondary);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    section a:hover {
+      color: var(--primary);
     }
 
     h2 {
@@ -346,12 +382,16 @@
 
   <nav class="back-nav">
     <a class="back-btn" href="index.html">← 목록으로 돌아가기</a>
+    <div class="nav-actions">
+      <a class="back-btn lang-btn" href="Bayesian_Network_en.html">English</a>
+      <a class="back-btn" href="Copula_ko.html">← 코퓰러(Copula) 이론 문서 보기</a>
+    </div>
   </nav>
 
   <div class="container">
     <header>
       <div class="subtitle">Hydrological Probabilistic Forecasting &amp; Control Reference</div>
-      <h1>베이지안 네트워크(BN), 코퓰러(Copula), DBN 및 Bui Dam 적용 종합 정리</h1>
+      <h1>베이지안 네트워크(BN)의 원리, 코퓰러(Copula) 결합 및 DBN 적용 정리</h1>
       <div class="meta">대상 문헌: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
           probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
       </div>
@@ -361,11 +401,9 @@
       <h2>목차</h2>
       <ul>
         <li><a href="#sec1">1. 베이지안 네트워크(Bayesian Network, BN)의 기본 원리</a></li>
-        <li><a href="#sec2">2. 코퓰러(Copula)의 본질: 주변분포와 의존구조의 분리</a></li>
-        <li><a href="#sec3">3. 가우시안 코퓰러(Gaussian Copula)와 4단계 확률 추론 메커니즘</a></li>
-        <li><a href="#sec4">4. 스피어만 순위 상관계수(Spearman's $r$)와의 관계</a></li>
-        <li><a href="#sec5">5. 동적 베이지안 네트워크(DBN)와의 결합 (2TBN 구조)</a></li>
-        <li><a href="#sec6">6. Bui 댐 학위논문에서의 실증 및 검증 체계 ($d$-calibration &amp; 3종 상관행렬 상세 해설)</a></li>
+        <li><a href="#sec2">2. 베이지안 네트워크에 코퓰러(Copula)를 적용하는 방법 (NPBN)</a></li>
+        <li><a href="#sec3">3. 동적 베이지안 네트워크(DBN)로의 확장 (2TBN 구조)</a></li>
+        <li><a href="#sec4">4. Bui 댐 학위논문에서의 실증 및 검증 체계 ($d$-calibration &amp; 3종 상관행렬 상세 해설)</a></li>
       </ul>
     </nav>
 
@@ -496,207 +534,165 @@
 
     <!-- SECTION 2 -->
     <section id="sec2">
-      <h2>2. 코퓰러(Copula)의 본질: 주변분포와 의존구조의 분리</h2>
-      <p>전통적인 베이지안 네트워크는 이산형 변수(예/아니오)를 주로 다루었으나, 연속형 수문 변수를 다루기 위해 <strong>비모수 베이지안 네트워크(NPBN)</strong>가 도입되었습니다. 그 핵심
-        수학 도구가 바로 <strong>코퓰러(Copula)</strong>입니다.</p>
-      <p>코퓰러는 각 변수의 개별적인 확률분포(<strong>주변분포, Marginal</strong>)와 변수들 간의 결합 의존성(<strong>의존구조, Dependence</strong>)을 완벽하게
-        분리하여 모델링하는 연결 함수입니다. 강우량($\text{mm}$)처럼 0이 많고 오른쪽으로 치우친 분포와 하천 유량($\text{m}^3/\text{s}$)처럼 긴 꼬리를 가진 비대칭 분포를 억지로
-        정규분포로 왜곡하지 않고 하나로 엮어낼 수 있습니다.</p>
+      <h2>2. 베이지안 네트워크에 코퓰러(Copula)를 적용하는 방법 (NPBN)</h2>
+      <p>1절에서 살펴본 베이지안 네트워크가 강우량($\text{mm}$), 토양수분, 하천 유량($\text{m}^3/\text{s}$)처럼 <strong>연속적이고 심하게 치우친 수문 변수</strong>를
+        데이터 왜곡 없이 다루기 위해 도입된 것이 바로 <strong>비모수 베이지안 네트워크(Non-Parametric Bayesian Network, NPBN)</strong>입니다. NPBN은 네트워크의 각
+        노드와 화살표에 <a href="Copula_ko.html">코퓰러(Copula) 이론</a>을 직접 결합하여 정량화합니다.</p>
 
-      <h3>2.1 스클라의 정리 (Sklar's Theorem)</h3>
-      <p>연속확률변수 $X_1, X_2$의 개별 누적분포함수(CDF)를 $F_1(x_1), F_2(x_2)$라 하고, 이들의 다변량 결합누적분포함수를 $F(x_1, x_2)$라 할 때, 둘 사이를 연결하는
-        유일한 코퓰러 함수 $C$가 항상 존재합니다.</p>
-      <div class="math-block">
-        $$F(x_1, x_2) = C\big(F_1(x_1), \, F_2(x_2)\big) = C(u_1, u_2)$$
-      </div>
+      <h3>2.1 기존 연속형 BN 접근법의 한계와 코퓰러 기반 NPBN의 해법</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 24%;">BN 구현 방식</th>
+            <th style="width: 38%;">의존구조 표현 방식</th>
+            <th style="width: 38%;">연속형 수문 데이터 적용 시 특징</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>이산형 BN<br>(Discrete BN)</strong></td>
+            <td>구간별 조건부 확률표(CPT)</td>
+            <td>연속 변수를 인위적인 구간(Bin)으로 쪼개야 하므로 정밀도 손실이 크며, 부모 노드 수가 늘어나면 CPT 경우의 수가 기하급수적으로 폭발함</td>
+          </tr>
+          <tr>
+            <td><strong>가우시안 BN<br>(Gaussian BN)</strong></td>
+            <td>선형 회귀 계수 및 정규 분산</td>
+            <td>모든 변수가 정규분포라고 가정하므로, 0이 많고 우측 꼬리가 긴 강우·유량에 적용 시 <strong>음수 유량 예측</strong> 등 물리적 왜곡 발생</td>
+          </tr>
+          <tr>
+            <td><strong>코퓰러 기반 NPBN<br>(본 연구 채택)</strong></td>
+            <td>경험적 주변분포($F_i$) +<br>화살표별 (조건부) 순위 상관계수 + 가우시안 코퓰러</td>
+            <td>각 변수의 실제 <strong>비정규 주변분포를 100% 보존</strong>하면서, 오직 의존성 계산만 잠재 정규 공간에서 수행하여 유연성과 해석적 추론 속도를 모두 확보</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 DAG 구성 요소와 코퓰러의 결합 구조 (노드·화살표 정량화)</h3>
+      <p>코퓰러 기반 NPBN에서는 베이지안 네트워크의 두 축인 <strong>노드</strong>와 <strong>화살표</strong>를 다음과 같이 분리하여 정량화합니다.</p>
       <ul>
-        <li>$u_1 = F_1(x_1) \in [0, 1]$, &nbsp; $u_2 = F_2(x_2) \in [0, 1]$ (각 변수의 누적 백분위수)</li>
+        <li><strong>노드(Node) $\leftrightarrow$ 주변분포($F_i$):</strong> 그래프의 각 노드 $X_i$에는 정규분포 같은 모수적 분포를 강제하지 않고, 관측 데이터로부터 직접
+          추정한 <strong>경험적 누적분포함수(Empirical CDF, $F_i$)</strong>를 그대로 할당합니다.</li>
+        <li><strong>화살표(Arc, $X_j \to X_i$) $\leftrightarrow$ (조건부) 순위 상관계수($r$) 및 코퓰러 모수($\rho$):</strong>
+          <ul>
+            <li>자식 노드 $X_i$의 부모가 1개($X_j$)뿐이라면, 그 화살표에는 두 변수 간의 비조건부 <strong>스피어만 순위 상관계수 $r(X_j, X_i)$</strong>를
+              할당합니다.</li>
+            <li>자식 노드 $X_i$에 여러 부모 노드($X_{p_1}, X_{p_2}, \dots, X_{p_k}$)가 동시에 화살표를 꽂는 경우, 부모의 순서를 정한 뒤 앞선 부모들을 통제한
+              <strong>조건부 순위 상관계수(Conditional Rank Correlation)</strong> $r(X_{p_m}, X_i \mid X_{p_1}, \dots,
+              X_{p_{m-1}})$를 각 화살표에 순차적으로 부여합니다. 이 값들은 각 화살표마다 서로 독립적으로 선택해도 대수적 일관성(양의 정부호성)이 깨지지 않습니다.</li>
+            <li>할당된 모든 순위 상관계수 $r$은 <a href="Copula_ko.html#sec3">가우시안 코퓰러 항등식</a> $\rho =
+              2\sin\left(\frac{\pi}{6}r\right)$을 통해 잠재 정규 공간의 (편)상관계수로 변환되며, DAG가 지정한 조건부 독립 구조(끊어진 화살표)와 결합하여 네트워크
+              전체 변수를 아우르는 <strong>유일한 잠재 상관행렬 $\Sigma$</strong>를 형성합니다.</li>
+          </ul>
+        </li>
       </ul>
 
-      <h3>2.2 확률적분변환 (Probability Integral Transform)</h3>
-      <p>임의의 연속확률변수 $X$가 원래 어떤 찌그러진 분포를 띠더라도, 자신의 누적분포함수(CDF)를 통과시켜 누적 백분위값 $U = F_X(X)$로 변환하면 그 결과는 항상 <strong>표준 균등분포
-          $U \sim \mathcal{U}(0, 1)$</strong>를 따릅니다.</p>
-      <div class="math-block">
-        $$P(U \le u) = P(F_X(X) \le u) = P(X \le F_X^{-1}(u)) = F_X(F_X^{-1}(u)) = u \quad (0 \le u \le 1)$$
+      <div class="diagram-box">
+        <svg width="760" height="240" viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="npbn-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a5f" />
+            </marker>
+          </defs>
+
+          <!-- Left Panel Title -->
+          <text x="220" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(a) NPBN 정량화: 노드(주변분포) +
+            화살표(순위 상관)</text>
+
+          <!-- Parent 1 -->
+          <rect x="20" y="42" width="150" height="48" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="95" y="63" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">부모 노드 X₁</text>
+          <text x="95" y="81" font-size="10.5" text-anchor="middle" fill="#0d9488">경험적 CDF: F₁(x₁)</text>
+
+          <!-- Parent 2 -->
+          <rect x="20" y="148" width="150" height="48" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="95" y="169" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">부모 노드 X₂</text>
+          <text x="95" y="187" font-size="10.5" text-anchor="middle" fill="#0d9488">경험적 CDF: F₂(x₂)</text>
+
+          <!-- Child -->
+          <rect x="265" y="95" width="155" height="48" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="342" y="116" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">자식 노드 X₃</text>
+          <text x="342" y="134" font-size="10.5" text-anchor="middle" fill="#b45309">경험적 CDF: F₃(x₃)</text>
+
+          <!-- Arcs and Rank Correlation Labels -->
+          <line x1="170" y1="66" x2="262" y2="110" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="222" y="74" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₁, X₃)</text>
+
+          <line x1="170" y1="172" x2="262" y2="128" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="224" y="176" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₂, X₃ | X₁)</text>
+
+          <!-- Divider -->
+          <line x1="442" y1="15" x2="442" y2="225" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4" />
+
+          <!-- Right Panel Title -->
+          <text x="600" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(b) 잠재 정규 공간 통합 (Gaussian
+            Copula)</text>
+
+          <!-- Transformation Box -->
+          <rect x="465" y="42" width="270" height="54" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="600" y="64" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#0f766e">각 화살표를 코퓰러 항등식으로 변환</text>
+          <text x="600" y="84" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">ρ = 2 sin(π r / 6)</text>
+
+          <!-- Down Arrow -->
+          <line x1="540" y1="96" x2="540" y2="140" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="552" y="122" font-size="11" font-weight="bold" text-anchor="start" fill="#475569">DAG 조건부 독립 반영</text>
+
+          <!-- Latent Correlation Matrix Box -->
+          <rect x="465" y="144" width="270" height="68" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="600" y="167" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">전체 잠재 상관행렬 Σ 구축</text>
+          <text x="600" y="186" font-size="11" text-anchor="middle" fill="#334155">Z = (Z₁, Z₂, Z₃) ~ N(0, Σ)</text>
+          <text x="600" y="203" font-size="10" text-anchor="middle" fill="#64748b">(직접 연결 없는 쌍은 Σ⁻¹=0 구조로 유도)</text>
+        </svg>
       </div>
-      <div class="callout">
-        <span class="callout-title">핵심 직관</span>
-        원래 데이터의 단위($\text{mm}, \text{m}^3/\text{s}$)와 비대칭적 겉모습(Marginal)을 잠시 떼어내고 $[0, 1]^2$ 백분위 공간으로 옮기면, 모든 변수가 동일한
-        균등분포 척도 위에 놓이게 되어 <strong>'두 변수가 함께 움직이는 순수한 결합 패턴'</strong>만 남게 됩니다.
+
+      <h3>2.3 코퓰러 BN에서의 다변량 조건부 추론 절차</h3>
+      <p>네트워크 전체의 잠재 상관행렬 $\Sigma$가 완성되면, <a href="Copula_ko.html#sec2">2변수 가우시안 코퓰러의 4단계 추론</a>이 임의 개수의 노드($n$개)로
+        자연스럽게 일반화됩니다. 관측된 증거 노드 집합을 $E$(Evidence), 예측·진단하고자 하는 목표 노드 집합을 $T$(Target)라 할 때 추론은 다음 3단계로 즉시 계산됩니다.</p>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 1</span>
+        <strong>관측 증거 노드의 잠재 정규 투영 ($x_E \to u_E \to z_E$)</strong>
+        <p>현재 관측된 변수들(예: 오늘 상류 수위, 누적 강우량, 토양습윤지수 등)을 각 노드의 경험적 누적분포함수 $F_E$와 표준정규 역함수 $\Phi^{-1}$에 통과시켜 잠재 정규 벡터 $z_E =
+          \Phi^{-1}(F_E(x_E))$로 변환합니다. 센서가 고장 나 빠진 변수는 단순히 $E$에서 제외하고 나머지 관측치만 투입하면 됩니다.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 2</span>
+        <strong>잠재 정규 공간에서의 다변량 조건부 갱신 ($Z_T \mid Z_E = z_E$)</strong>
+        <p>전체 잠재 상관행렬 $\Sigma$를 목표 노드 블록($T$)과 관측 노드 블록($E$)으로 분할하면, 다변량 정규분포의 성질에 의해 목표 노드들의 조건부 잠재 분포가 <strong>수치 적분이나
+            MCMC 없이 단 한 번의 행렬 연산(닫힌 해석해)</strong>으로 도출됩니다.</p>
+        <div class="math-block">
+          $$\Sigma = \begin{pmatrix} \Sigma_{TT} & \Sigma_{TE} \\ \Sigma_{ET} & \Sigma_{EE} \end{pmatrix} \quad \implies
+          \quad Z_T \mid (Z_E = z_E) \sim \mathcal{N}\!\left(\Sigma_{TE}\Sigma_{EE}^{-1}z_E, \; \Sigma_{TT} -
+          \Sigma_{TE}\Sigma_{EE}^{-1}\Sigma_{ET}\right)$$
+        </div>
+        <p>이 동일한 수식으로 원인$\to$결과의 <strong>순방향 예측</strong>, 결과$\to$원인의 <strong>역방향 진단</strong>, 그리고 <strong>결측치 자동
+            보완</strong>이 모두 일관되게 처리됩니다.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 3</span>
+        <strong>백분위 복귀 및 물리 단위 역변환 ($Z_T \to U_T \to X_T$)</strong>
+        <p>2단계의 조건부 다변량 정규분포에서 추출한 예측값(또는 몬테카를로 앙상블 샘플) $Z_T$를 표준정규 누적분포함수 $\Phi(\cdot)$에 넣어 백분위 $U_T = \Phi(Z_T)$로 되돌린 뒤,
+          각 목표 노드의 경험적 역누적분포함수 $F_T^{-1}$에 대입하여 실제 물리 단위($X_T = F_T^{-1}(U_T)$)의 비정규 예측 분포를 복원합니다.</p>
+      </div>
+
+      <div class="callout amber">
+        <span class="callout-title">적용 시 유의점: 가우시안 코퓰러 가정과 구조 단순화의 검증 필요성</span>
+        NPBN은 계산 효율성과 해석적 조건부 갱신을 얻는 대신, 모든 의존성을 가우시안 코퓰러($\lambda_U = \lambda_L = 0$, <a
+          href="Copula_ko.html#sec2">코퓰러 문서 2절 참고</a>)로 근사하고 DAG에서 약한 화살표를 가지치기(조건부 독립 부여)합니다. 따라서 모델이 실제 수문 데이터의
+        상관구조를 왜곡 없이 보존하는지 <a href="#sec4">4절의 $d$-calibration 체계</a>로 반드시 정량 검증해야 합니다.
       </div>
     </section>
 
     <!-- SECTION 3 -->
     <section id="sec3">
-      <h2>3. 가우시안 코퓰러(Gaussian Copula)와 4단계 확률 추론 메커니즘</h2>
-      <p>가우시안 코퓰러는 백분위 공간에서의 순수한 의존성을 다변량 정규분포의 상관 구조를 빌려와 계산하는 기법입니다.</p>
-
-      <h3>3.1 가우시안 코퓰러 수식</h3>
-      <div class="math-block">
-        $$C_\rho(u_1, u_2) = \Phi_\rho\left(\Phi^{-1}(u_1), \; \Phi^{-1}(u_2)\right)$$
-      </div>
-      <p>확률밀도함수(Copula density, $c_\rho$) 형태로 표현하면 다음과 같습니다 ($z_i = \Phi^{-1}(u_i)$):</p>
-      <div class="math-block">
-        $$c_\rho(u_1, u_2) = \frac{1}{\sqrt{1-\rho^2}} \exp\left( -\frac{\rho^2 z_1^2 - 2\rho z_1 z_2 + \rho^2
-        z_2^2}{2(1-\rho^2)} \right)$$
-      </div>
-      <ul>
-        <li>$\Phi^{-1}(\cdot)$: 표준정규분포 $\mathcal{N}(0, 1)$의 역누적분포함수(분위수 함수)</li>
-        <li>$\Phi_\rho$: 상관계수 $\rho$를 모수로 갖는 2변량 표준정규분포의 누적분포함수</li>
-      </ul>
-
-      <h3>3.2 모수 $\rho$ (로 / rho)의 진정한 의미</h3>
-      <ul>
-        <li><strong>원본 데이터의 피어슨 상관계수가 아닙니다:</strong> $\rho$는 관측된 강우량($\text{mm}$)과 유량($\text{m}^3/\text{s}$) 사이의 직접적인 선형
-          상관계수가 아닙니다.</li>
-        <li><strong>잠재 정규 공간(Latent Normal Space)에서의 상관계수:</strong> 백분위 $u_1, u_2$를 표준정규 역함수에 통과시켜 만든 가상의 정규점수 변수 $Z_1 =
-          \Phi^{-1}(u_1)$과 $Z_2 = \Phi^{-1}(u_2)$ 사이의 피어슨 선형 상관계수($\text{Corr}(Z_1, Z_2)$)를 의미합니다.</li>
-        <li><strong>다변량 정규분포와의 차이:</strong> 다변량 정규분포는 강우와 유량 자체를 정규분포로 강제하여 음수 강우 등 물리적 왜곡을 일으키지만, 가우시안 코퓰러는 <strong>각
-            변수의 비정규 경험적 분포(Empirical CDF)를 100% 보존</strong>하면서 오직 의존 구조 계산에만 가우시안 수식을 활용합니다.</li>
-      </ul>
-
-      <h3>3.3 유입량 확률분포 예측을 위한 4단계 추론 메커니즘</h3>
-      <p>오늘 강우량 $x_1$이 관측되었을 때 내일 하천 유량 $Q$의 조건부 확률분포(및 앙상블 시나리오)를 도출하는 전체 파이프라인은 다음 4단계로 작동합니다.</p>
-
-      <div class="diagram-box">
-        <svg width="780" height="150" viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
-              orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
-            </marker>
-          </defs>
-          <!-- Box 1 -->
-          <rect x="10" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
-          <text x="87" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">1단계: 백분위 변환</text>
-          <text x="87" y="70" font-size="11" text-anchor="middle" fill="#334155">관측 강우 x₁</text>
-          <text x="87" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">u₁ = F₁(x₁) ∈
-            [0,1]</text>
-          <text x="87" y="106" font-size="10" text-anchor="middle" fill="#64748b">(경험적 CDF 적용)</text>
-
-          <line x1="165" y1="72" x2="205" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
-
-          <!-- Box 2 -->
-          <rect x="210" y="25" width="175" height="95" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
-          <text x="297" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">2단계: 잠재 정규
-            추론</text>
-          <text x="297" y="68" font-size="11" text-anchor="middle" fill="#334155">z₁ = Φ⁻¹(u₁)</text>
-          <text x="297" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">Z₂|z₁ ~ N(ρz₁,
-            1-ρ²)</text>
-          <text x="297" y="106" font-size="10" text-anchor="middle" fill="#64748b">(순수 가우시안 성립 지점)</text>
-
-          <line x1="385" y1="72" x2="425" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
-
-          <!-- Box 3 -->
-          <rect x="430" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
-          <text x="507" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">3단계: 백분위 복귀</text>
-          <text x="507" y="70" font-size="11" text-anchor="middle" fill="#334155">정규 누적함수 통과</text>
-          <text x="507" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">U₂ = Φ(Z₂) ∈
-            [0,1]</text>
-          <text x="507" y="106" font-size="10" text-anchor="middle" fill="#64748b">(유량 백분위 조건부 분포)</text>
-
-          <line x1="585" y1="72" x2="625" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
-
-          <!-- Box 4 -->
-          <rect x="630" y="25" width="140" height="95" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
-          <text x="700" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">4단계: 실제 유량
-            환산</text>
-          <text x="700" y="70" font-size="11" text-anchor="middle" fill="#334155">과거 유량 역CDF</text>
-          <text x="700" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#b45309">Q = F₂⁻¹(U₂)</text>
-          <text x="700" y="106" font-size="10" text-anchor="middle" fill="#64748b">(비정규 수문 특성 복원)</text>
-        </svg>
-      </div>
-
-      <div class="pipeline-step">
-        <span class="step-badge">STEP 1</span>
-        <strong>관측 강우의 백분위 변환 ($x_1 \to u_1$)</strong>
-        <p>관측된 강우량 $x_1$을 과거 강우 누적분포함수($F_1$)에 대입하여 $0 \sim 1$ 사이의 백분위 $u_1 = F_1(x_1)$을 구합니다. 예를 들어 오늘 비가 하위 12% 수준이라면
-          $u_1 = 0.12$가 됩니다.</p>
-      </div>
-
-      <div class="pipeline-step">
-        <span class="step-badge">STEP 2</span>
-        <strong>표준정규 공간 투영 및 가우시안 코퓰러 조건부 추론 ($u_1 \to z_1 \to Z_2$)</strong>
-        <p>백분위 $u_1$을 표준정규 역함수에 넣어 잠재 정규값 $z_1 = \Phi^{-1}(u_1)$로 투영합니다 ($u_1=0.12 \implies z_1 \approx -1.17$). 2변량
-          표준정규분포의 조건부 확률 공식에 의해, $Z_1 = z_1$이 주어졌을 때 내일 유량의 잠재 변수 $Z_2$는 <strong>엄밀한 1차원 가우시안(정규분포)</strong>을 따릅니다.</p>
-        <div class="math-block">
-          $$Z_2 \mid (Z_1 = z_1) \sim \mathcal{N}\left(\rho z_1, \; 1 - \rho^2\right)$$
-        </div>
-        <p>※ 주의: 유량 백분위 $U_2$ 자체가 정규분포인 것이 아니라, $U_2$를 정규 척도로 펼친 잠재 변수 $Z_2 = \Phi^{-1}(U_2)$가 정규분포를 따르는 것입니다.</p>
-      </div>
-
-      <div class="pipeline-step">
-        <span class="step-badge">STEP 3</span>
-        <strong>표준정규 누적함수를 통한 유량 백분위 복귀 ($Z_2 \to U_2$)</strong>
-        <p>2단계에서 도출된 $Z_2$ 정규분포(또는 여기서 추출한 몬테카를로 난수 샘플)를 다시 표준정규 누적분포함수 $\Phi(\cdot)$에 통과시킵니다. 이로써 $-\infty \sim
-          +\infty$ 범위의 정규분포가 다시 $[0, 1]$ 구간의 <strong>유량 백분위 조건부 분포 $U_2 = \Phi(Z_2)$</strong>로 매핑됩니다.</p>
-      </div>
-
-      <div class="pipeline-step">
-        <span class="step-badge">STEP 4</span>
-        <strong>과거 유량 역누적분포 적용을 통한 물리 단위 복원 ($U_2 \to Q$)</strong>
-        <p>도출된 백분위 분포 $U_2$를 과거 관측 유량의 역누적분포함수(분위수 함수, $F_2^{-1}$)에 대입하여 실제 $\text{m}^3/\text{s}$ 단위의 유량 분포 $Q =
-          F_2^{-1}(U_2)$를 얻습니다. 이 과정에서 정규분포의 대칭성은 사라지고, 실제 하천 유역 특유의 비대칭성과 긴 우측 꼬리가 복원됩니다.</p>
-      </div>
-
-      <div class="callout amber">
-        <span class="callout-title">가우시안 코퓰러의 구조적 한계 (꼬리 의존성 부재)</span>
-        수학적으로 $\rho \lt 1$인 한, 가우시안 코퓰러의 상한·하한 꼬리 의존 계수는 항상 0입니다 ($\lambda_U = \lambda_L = 0$). 즉, 극단적인 폭우 시 첨두 홍수 유량이
-        동시에 폭발할 확률을 점근적으로 독립 취급하므로 극치 피크를 다소 과소평가하는 경향이 나타납니다.
-      </div>
-    </section>
-
-    <!-- SECTION 4 -->
-    <section id="sec4">
-      <h2>4. 스피어만 순위 상관계수(Spearman's $r$)와의 관계</h2>
-      <p>스피어만 상관계수와 코퓰러는 서로 대체하는 관계가 아닙니다. <strong>코퓰러가 조건부 추론과 시나리오 샘플링을 수행하는 '엔진(함수 틀)'</strong>이라면, <strong>스피어만
-          상관계수는 그 엔진이 작동하도록 데이터에서 모수 $\rho$를 채워 넣는 '측정 및 변환 도구'</strong>입니다.</p>
-
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 22%;">비교 항목</th>
-            <th style="width: 39%;">스피어만 순위 상관계수 ($r$ 또는 $\rho_s$)</th>
-            <th style="width: 39%;">코퓰러 (Copula, $C(u_1, u_2)$)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>수학적 형태</strong></td>
-            <td>단 하나의 숫자 (스칼라 값, $-1 \le r \le 1$)</td>
-            <td>다차원 결합 확률 곡면 (함수 전체)</td>
-          </tr>
-          <tr>
-            <td><strong>핵심 역할</strong></td>
-            <td>두 변수의 단조 증가 경향을 요약하는 <strong>단일 통계량</strong></td>
-            <td>모든 백분위 구간에서의 결합 구조를 담은 <strong>확률 모델</strong></td>
-          </tr>
-          <tr>
-            <td><strong>시뮬레이션 기능</strong></td>
-            <td>숫자 1개뿐이므로 미래 시나리오 샘플링 불가</td>
-            <td>조건부 분포 역산 및 몬테카를로 앙상블 추출 가능</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>4.1 해석적 변환 항등식 (Closed-form Identity)</h3>
-      <p>가우시안 코퓰러에서는 실제 데이터의 순위 공간에서의 스피어만 상관계수 $r$과 잠재 정규 공간의 피어슨 상관계수 $\rho$ 사이에 다음과 같은 엄밀한 일대일 항등식이 성립합니다.</p>
-      <div class="math-block">
-        $$r = \frac{6}{\pi}\arcsin\left(\frac{\rho}{2}\right) \quad \Longleftrightarrow \quad \rho =
-        2\sin\left(\frac{\pi}{6}r\right)$$
-      </div>
-      <p>따라서 반복적인 수치 최적화(최대우도추정법 등)를 거치지 않고도, 관측 데이터에서 스피어만 순위 상관계수 $r$만 계산하면 가우시안 코퓰러의 모수 $\rho$를 단 한 번의 삼각함수 연산으로 즉시
-        확정할 수 있습니다.</p>
-    </section>
-
-    <!-- SECTION 5 -->
-    <section id="sec5">
-      <h2>5. 동적 베이지안 네트워크(DBN)와의 결합 (2TBN 구조)</h2>
+      <h2>3. 동적 베이지안 네트워크(DBN)로의 확장 (2TBN 구조)</h2>
       <p>1절에서 살펴본 정적 베이지안 네트워크(Static BN)에 <strong>시간의 흐름($t \to t+1$)</strong>을 명시적으로 결합한 모델이 바로 <strong>동적 베이지안
           네트워크(Dynamic Bayesian Network, DBN)</strong>입니다. 여기서 'Dynamic'은 네트워크 구조가 시시각각 변한다는 뜻이 아니라, 시간 슬라이스 간의 상태 전이를
         동적으로 추적한다는 의미입니다.</p>
 
-      <h3>5.1 2-슬라이스 구조 (2-Time-slice Bayesian Network, 2TBN)</h3>
+      <h3>3.1 2-슬라이스 구조 (2-Time-slice Bayesian Network, 2TBN)</h3>
       <p>미래 10일치 시계열(12개 변수 $\times$ 10일 = 120개 노드)을 한꺼번에 정적 네트워크로 펼치면 차원의 저주로 인해 상관행렬 추정이 불가능해집니다. 이를 해결하기 위해 현재
         시점($t$)과 다음 시점($t+1$)의 <strong>2개 시간 단면(총 24개 노드)만 정의</strong>합니다.</p>
       <ul>
@@ -709,7 +705,7 @@
           생성(Rollout)합니다.</li>
       </ul>
 
-      <h3>5.2 조건부 독립(화살표 구성)의 하이브리드 결정</h3>
+      <h3>3.2 조건부 독립(화살표 구성)의 하이브리드 결정</h3>
       <ol>
         <li><strong>1단계 (도메인 지식):</strong> 물이 상류에서 하류로 흐르는 물리적 경로(상류 Sourou $\to$ 중류 Lawra $\to$ 하류 Chache)를 따라 기본 인과
           골격을 설정합니다.</li>
@@ -719,12 +715,12 @@
       </ol>
     </section>
 
-    <!-- SECTION 6 -->
-    <section id="sec6">
-      <h2>6. Bui 댐 학위논문에서의 실증 및 검증 체계</h2>
+    <!-- SECTION 4 -->
+    <section id="sec4">
+      <h2>4. Bui 댐 학위논문에서의 실증 및 검증 체계</h2>
       <p>가나 블랙 볼타 유역의 Bui 댐에서 발생한 2019년 비상 여수로 방류 사상을 사례로, DBN 기반 확률론적 유입량 예측과 CVaR 기반 확률론적 모델예측제어(SMPC)를 결합했습니다.</p>
 
-      <h3>6.1 Direct DBN vs Residual DBN 및 지체 시간(Lag) 식별</h3>
+      <h3>4.1 Direct DBN vs Residual DBN 및 지체 시간(Lag) 식별</h3>
       <ul>
         <li><strong>유역 반응 시간(Lag) 식별:</strong> 각 설명변수 $X$와 목표 유량 $Y$ 사이의 시차 $L$을 변화시키며 스피어만 순위 상관계수 $|\rho_s(X_{t-L},
           Y_t)|$가 최대가 되는 지점을 물리적 도달 시간으로 채택했습니다.</li>
@@ -734,7 +730,7 @@
           모형입니다. 오차의 자기상관(persistence)이 매우 강해 초기 오차가 지속되는 경향이 있습니다.</li>
       </ul>
 
-      <h3>6.2 $d$-calibration score의 이론적 배경 및 3가지 상관행렬 심층 해부</h3>
+      <h3>4.2 $d$-calibration score의 이론적 배경 및 3가지 상관행렬 심층 해부</h3>
       <p>변수가 24개에 달하는 고차원 DBN에서는 개별 산점도만으로 모델의 적합성을 판정할 수 없으므로, <strong>행렬 전체의 정보기하학적 유사도</strong>를 측정하는 $d$-calibration
         score를 사용합니다.</p>
 
@@ -826,7 +822,7 @@
         </tbody>
       </table>
 
-      <h3>6.3 계절성 제거 효과, 롤아웃 방식 및 CVaR 기반 SMPC 연계</h3>
+      <h3>4.3 계절성 제거 효과, 롤아웃 방식 및 CVaR 기반 SMPC 연계</h3>
       <ul>
         <li><strong>계절성 제거(Deseasonalisation)의 위력:</strong> 우기(7~10월)의 원시(Raw) 데이터는 공통 계절 리듬 때문에 상관성이 과장됩니다. 일별 기후학적 평균을
           뺀 <strong>아노말리(Rain-Anom) 모델</strong>은 표본 외(out-of-sample) 검증에서 기후학 앙상블 대비 Energy Skill Score(ESS)를 약 15% 개선하며
@@ -842,3 +838,4 @@
 </body>
 
 </html>
+

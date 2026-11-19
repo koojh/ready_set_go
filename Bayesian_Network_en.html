@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bayesian Networks (BN), Copula Integration (NPBN), DBN &amp; Bui Dam Summary</title>
+
+  <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* Back to index and document/language navigation */
+    .back-nav {
+      max-width: 960px;
+      margin: 0 auto 1.5rem auto;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #475569;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .back-btn:hover {
+      color: #2563eb;
+      border-color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .back-btn.lang-btn {
+      color: #1e3a5f;
+      border-color: #93c5fd;
+      background-color: #eff6ff;
+      font-weight: 600;
+    }
+
+    .back-btn.lang-btn:hover {
+      color: #1d4ed8;
+      border-color: #2563eb;
+      background-color: #dbeafe;
+    }
+
+    /* Hide navigation bar when printing to PDF */
+    @media print {
+      .back-nav {
+        display: none;
+      }
+    }
+
+    :root {
+      --primary: #1e3a5f;
+      --secondary: #2b6cb0;
+      --accent: #0d9488;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --callout-blue: #eff6ff;
+      --callout-teal: #f0fdfa;
+      --callout-amber: #fffbeb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.75;
+      color: var(--text);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 3rem 3.5rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    header .subtitle {
+      color: var(--secondary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.95rem;
+      color: var(--primary);
+      line-height: 1.3;
+    }
+
+    header .meta {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    nav.toc {
+      background: var(--code-bg);
+      padding: 1.25rem 1.75rem;
+      border-radius: 10px;
+      margin-bottom: 2.5rem;
+      border-left: 4px solid var(--secondary);
+    }
+
+    nav.toc h2 {
+      margin: 0 0 0.6rem 0;
+      font-size: 1.05rem;
+      color: var(--primary);
+      border: none;
+      padding: 0;
+    }
+
+    nav.toc ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    nav.toc li {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    nav.toc a {
+      color: var(--secondary);
+      text-decoration: none;
+    }
+
+    nav.toc a:hover {
+      text-decoration: underline;
+    }
+
+    section a {
+      color: var(--secondary);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    section a:hover {
+      color: var(--primary);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    h3 {
+      color: var(--secondary);
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    h4 {
+      color: #334155;
+      font-size: 1.05rem;
+      margin-top: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0.75rem 0;
+    }
+
+    ul,
+    ol {
+      margin: 0.6rem 0 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.45rem;
+    }
+
+    .math-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .callout {
+      padding: 1.15rem 1.4rem;
+      border-radius: 8px;
+      margin: 1.25rem 0;
+      border-left: 4px solid var(--secondary);
+      background: var(--callout-blue);
+    }
+
+    .callout.teal {
+      border-left-color: var(--accent);
+      background: var(--callout-teal);
+    }
+
+    .callout.amber {
+      border-left-color: #d97706;
+      background: var(--callout-amber);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--primary);
+      display: block;
+    }
+
+    .callout.amber .callout-title {
+      color: #92400e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.95rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .pipeline-step {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem 1.3rem;
+      margin: 1rem 0;
+      background: #ffffff;
+    }
+
+    .pipeline-step .step-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.4rem;
+    }
+
+    .matrix-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      margin: 1rem 0;
+      background: #fcfdff;
+    }
+
+    .matrix-card h4 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 1.08rem;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 0.4rem;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin: 1.4rem 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .mini-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      background: #ffffff;
+    }
+
+    .mini-card h4 {
+      margin-top: 0;
+      color: var(--secondary);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.75rem 1.25rem;
+      }
+
+      header h1 {
+        font-size: 1.55rem;
+      }
+
+      .grid-2col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="back-nav">
+    <a class="back-btn" href="index.html">← Back to Index</a>
+    <div class="nav-actions">
+      <a class="back-btn lang-btn" href="Bayesian_Network_ko.html">한국어</a>
+      <a class="back-btn" href="Copula_en.html">← View Copula Theory Summary</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <div class="subtitle">Hydrological Probabilistic Forecasting &amp; Control Reference</div>
+      <h1>Bayesian Networks (BN), Copula Integration (NPBN), DBN, and Bui Dam Application</h1>
+      <div class="meta">Reference: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
+          probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li><a href="#sec1">1. Fundamentals of Bayesian Networks (BN)</a></li>
+        <li><a href="#sec2">2. How Copulas Are Applied in Bayesian Networks (NPBN)</a></li>
+        <li><a href="#sec3">3. Extension to Dynamic Bayesian Networks (DBN &amp; 2TBN Structure)</a></li>
+        <li><a href="#sec4">4. Bui Dam Case Study &amp; Validation Framework ($d$-calibration &amp; Three Correlation
+            Matrices)</a></li>
+      </ul>
+    </nav>
+
+    <!-- SECTION 1 -->
+    <section id="sec1">
+      <h2>1. Fundamentals of Bayesian Networks (BN)</h2>
+      <p>A <strong>Bayesian Network (BN)</strong> is a <strong>Probabilistic Graphical Model (PGM)</strong> that
+        visualizes causal relationships and statistical dependencies among uncertain variables as a <strong>directed
+          graph</strong>, and uses that structure to perform conditional probability inference.</p>
+
+      <h3>1.1 Motivation: Simplifying High-Dimensional Joint Distributions</h3>
+      <p>Suppose we want to forecast river inflow by simultaneously accounting for 10 variables, such as rainfall, soil
+        moisture, temperature, and upstream water levels.</p>
+      <ul>
+        <li><strong>Limitation of direct multivariate joint distributions:</strong> Estimating the full joint
+          probability
+          distribution $P(X_1, X_2, \dots, X_n)$ monolithically causes the number of parameters and data requirements to
+          grow exponentially as variables increase (the curse of dimensionality).</li>
+        <li><strong>The Bayesian Network solution (exploiting conditional independence):</strong> BNs leverage the
+          physical fact that <em>"not every variable directly influences every other variable."</em> For instance, once
+          the <strong>downstream gauge directly upstream of the dam</strong> is accurately observed, information from a
+          far-upstream gauge hundreds of kilometers away adds no direct influence on tomorrow's inflow given the
+          downstream observation.</li>
+        <li>By drawing arcs only between directly interacting variables and factoring out indirect paths via
+          <strong>conditional independence</strong>, a complex high-dimensional joint distribution decomposes into a
+          compact product of local conditional distributions.
+        </li>
+      </ul>
+
+      <h3>1.2 Three Core Components of a Bayesian Network</h3>
+      <ol>
+        <li><strong>Nodes:</strong> Random variables being modeled (e.g., rainfall, soil moisture, upstream water level,
+          dam inflow).</li>
+        <li><strong>Directed Acyclic Graph (DAG):</strong> A set of directed arcs (edges) encoding direct causal or
+          statistical influence.
+          <ul>
+            <li>When an arc points $X_j \to X_i$, $X_j$ is called a <strong>parent</strong> node and $X_i$ a
+              <strong>child</strong> node.
+            </li>
+            <li>Directed cycles returning to the starting node are strictly prohibited to preserve mathematical
+              consistency.</li>
+          </ul>
+        </li>
+        <li><strong>Quantitative Conditional Specification:</strong> The conditional probability distribution of each
+          child given its parents. Discrete BNs use Conditional Probability Tables (CPTs), whereas continuous networks
+          such as the one in this thesis use <strong>empirical marginals coupled with conditional copulas</strong>.</li>
+      </ol>
+
+      <div class="math-block">
+        $$P(X_1, X_2, \dots, X_n) = \prod_{i=1}^{n} P\big(X_i \mid \text{pa}(X_i)\big)$$
+      </div>
+      <p style="text-align: center; font-size: 0.9rem; color: var(--muted); margin-top: -0.6rem;">(Here,
+        $\text{pa}(X_i)$ denotes the set of direct parent nodes of $X_i$.)</p>
+
+      <h3>1.3 Intuitive Example and Hydrological Hierarchy</h3>
+      <div class="diagram-box">
+        <svg width="760" height="215" viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="bn-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a5f" />
+            </marker>
+          </defs>
+
+          <!-- Left Panel: Sprinkler Example -->
+          <text x="175" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(a) Classic
+            Example:
+            Lawn Sprinkler</text>
+          <rect x="130" y="34" width="90" height="32" rx="16" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="175" y="54" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Season</text>
+
+          <line x1="150" y1="66" x2="105" y2="96" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+          <line x1="200" y1="66" x2="245" y2="96" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+
+          <rect x="55" y="100" width="80" height="32" rx="16" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="95" y="120" font-size="12" font-weight="bold" text-anchor="middle" fill="#0f766e">Rain</text>
+
+          <rect x="200" y="100" width="110" height="32" rx="16" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="255" y="120" font-size="12" font-weight="bold" text-anchor="middle" fill="#0f766e">Sprinkler</text>
+
+          <line x1="105" y1="132" x2="150" y2="164" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+          <line x1="245" y1="132" x2="200" y2="164" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+
+          <rect x="120" y="168" width="110" height="34" rx="16" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="175" y="189" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">Wet Grass</text>
+
+          <!-- Divider -->
+          <line x1="365" y1="15" x2="365" y2="205" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4" />
+
+          <!-- Right Panel: Hydrological Cascade -->
+          <text x="560" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(b) Hydrological
+            Cascade (Following Flow)</text>
+
+          <rect x="382" y="45" width="132" height="34" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="448" y="66" font-size="11" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Upstream
+            Rain/Soil</text>
+
+          <line x1="514" y1="62" x2="548" y2="62" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+
+          <rect x="552" y="45" width="128" height="34" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="616" y="66" font-size="11" font-weight="bold" text-anchor="middle" fill="#0f766e">Upstream Level
+            1</text>
+
+          <line x1="616" y1="79" x2="616" y2="105" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+
+          <rect x="552" y="109" width="128" height="34" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="616" y="130" font-size="11" font-weight="bold" text-anchor="middle" fill="#0f766e">Downstream Level
+            10</text>
+
+          <rect x="382" y="109" width="132" height="34" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="448" y="130" font-size="11" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Local Sub-basin
+            Rain</text>
+
+          <line x1="514" y1="126" x2="548" y2="126" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+          <line x1="616" y1="143" x2="616" y2="168" stroke="#1e3a5f" stroke-width="1.5" marker-end="url(#bn-arrow)" />
+
+          <rect x="542" y="172" width="148" height="34" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="616" y="193" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#92400e">Next-Day Dam
+            Inflow</text>
+        </svg>
+      </div>
+
+      <p>Whereas multiple linear regression or deep neural networks (DNNs) feed all 10 input variables directly into a
+        single output node (a 10-to-1 fan-in structure), a Bayesian network mirrors the <strong>physical river routing
+          (upstream $\to$ midstream $\to$ downstream)</strong> like stepping stones, keeping the number of parents per
+        node minimal.</p>
+
+      <h3>1.4 Bidirectional Inference and Key Advantages</h3>
+      <div class="grid-2col">
+        <div class="mini-card">
+          <h4>1) Predictive Reasoning (Forward)</h4>
+          <p><strong>Cause $\to$ Effect:</strong> "Given an 80% rainfall forecast today, what is the probability that
+            the
+            grass will be wet (or what is the distribution of tomorrow's dam inflow)?" Inference follows the arc
+            directions to compute future state distributions.</p>
+        </div>
+        <div class="mini-card">
+          <h4>2) Diagnostic Reasoning (Backward)</h4>
+          <p><strong>Effect $\to$ Cause:</strong> "Looking outside in the morning, the grass is wet (observed evidence).
+            What are the posterior probabilities that it rained overnight versus that the sprinkler ran?" Bayes' rule
+            propagates backward against the arcs to update causal probabilities.</p>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>Robustness to Missing Data:</strong> If an operational sensor (such as an upstream water-level
+          gauge)
+          fails and drops out, the BN automatically infers the conditional distribution of the missing node from
+          connected neighbors and continues forecasting reliably.</li>
+        <li><strong>High Explainability:</strong> Unlike black-box models, the graph structure and rank correlations
+          make it transparent which hydrological drivers affect the forecast and through which causal paths.</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="sec2">
+      <h2>2. How Copulas Are Applied in Bayesian Networks (NPBN)</h2>
+      <p>To enable the Bayesian network described in Section 1 to handle <strong>continuous, strongly skewed
+          hydrological
+          variables</strong>—such as rainfall ($\text{mm}$), soil moisture, and river discharge
+        ($\text{m}^3/\text{s}$)—without distorting their distributions, a <strong>Non-Parametric Bayesian Network
+          (NPBN)</strong> is used. An NPBN directly integrates <a href="Copula_en.html">copula theory</a> into the nodes
+        and arcs of the DAG.</p>
+
+      <h3>2.1 Limitations of Traditional Continuous BNs vs. the Copula-Based NPBN Solution</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 24%;">BN Formulation</th>
+            <th style="width: 38%;">Dependence Representation</th>
+            <th style="width: 38%;">Behavior on Continuous Hydrological Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Discrete BN</strong></td>
+            <td>Binned Conditional Probability Tables (CPTs)</td>
+            <td>Discretizing continuous variables into bins loses precision, and CPT table size explodes exponentially
+              as
+              parent count grows</td>
+          </tr>
+          <tr>
+            <td><strong>Gaussian BN</strong></td>
+            <td>Linear regression weights &amp; Gaussian variances</td>
+            <td>Forces every variable to follow a normal distribution, causing physical distortions such as
+              <strong>negative discharge forecasts</strong> on skewed, zero-bounded hydrographs
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Copula-based NPBN<br>(Used in this study)</strong></td>
+            <td>Empirical marginals ($F_i$) +<br>(conditional) rank correlations on arcs + Gaussian copula</td>
+            <td><strong>Preserves each variable's true non-Gaussian marginal 100%</strong> while computing joint
+              dependence analytically in latent normal space, achieving both flexibility and speed</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 Coupling DAG Components with Copulas (Quantifying Nodes &amp; Arcs)</h3>
+      <p>In a copula-based NPBN, the two structural elements of a Bayesian network—<strong>nodes</strong> and
+        <strong>arcs</strong>—are quantified separately as follows:
+      </p>
+      <ul>
+        <li><strong>Nodes $\leftrightarrow$ Marginal Distributions ($F_i$):</strong> Rather than imposing a parametric
+          family (such as Gaussian) on node $X_i$, each node retains its <strong>Empirical Cumulative Distribution
+            Function (Empirical CDF, $F_i$)</strong> estimated directly from historical observations.</li>
+        <li><strong>Arcs ($X_j \to X_i$) $\leftrightarrow$ (Conditional) Rank Correlations ($r$) &amp; Copula
+            Parameters ($\rho$):</strong>
+          <ul>
+            <li>When a child node $X_i$ has only a single parent $X_j$, the arc is assigned the unconditional
+              <strong>Spearman rank correlation $r(X_j, X_i)$</strong>.
+            </li>
+            <li>When a child node $X_i$ has multiple parents ($X_{p_1}, X_{p_2}, \dots, X_{p_k}$), the parents are
+              ordered and each arc is assigned a <strong>conditional rank correlation</strong>
+              $r(X_{p_m}, X_i \mid X_{p_1}, \dots, X_{p_{m-1}})$ controlling for preceding parents. These conditional
+              rank correlations can be specified independently for every arc without violating algebraic consistency
+              (positive definiteness).</li>
+            <li>Every assigned rank correlation $r$ is transformed via the <a href="Copula_en.html#sec3">Gaussian
+                copula identity</a> $\rho = 2\sin\left(\frac{\pi}{6}r\right)$ into a (partial) correlation in latent
+              normal space. Combined with the conditional independencies encoded by missing arcs in the DAG, this
+              uniquely specifies the network-wide <strong>latent correlation matrix $\Sigma$</strong>.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="diagram-box">
+        <svg width="760" height="240" viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="npbn-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e3a5f" />
+            </marker>
+          </defs>
+
+          <!-- Left Panel Title -->
+          <text x="220" y="20" font-size="12.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(a) NPBN
+            Parameterization: Nodes (Marginals) + Arcs (Rank Corr.)</text>
+
+          <!-- Parent 1 -->
+          <rect x="18" y="42" width="152" height="48" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="94" y="63" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Parent Node
+            X₁</text>
+          <text x="94" y="81" font-size="10.5" text-anchor="middle" fill="#0d9488">Empirical CDF: F₁(x₁)</text>
+
+          <!-- Parent 2 -->
+          <rect x="18" y="148" width="152" height="48" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="94" y="169" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Parent Node
+            X₂</text>
+          <text x="94" y="187" font-size="10.5" text-anchor="middle" fill="#0d9488">Empirical CDF: F₂(x₂)</text>
+
+          <!-- Child -->
+          <rect x="265" y="95" width="155" height="48" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="342" y="116" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">Child Node
+            X₃</text>
+          <text x="342" y="134" font-size="10.5" text-anchor="middle" fill="#b45309">Empirical CDF: F₃(x₃)</text>
+
+          <!-- Arcs and Rank Correlation Labels -->
+          <line x1="170" y1="66" x2="262" y2="110" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="222" y="74" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₁, X₃)</text>
+
+          <line x1="170" y1="172" x2="262" y2="128" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="224" y="176" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₂, X₃ |
+            X₁)</text>
+
+          <!-- Divider -->
+          <line x1="442" y1="15" x2="442" y2="225" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4" />
+
+          <!-- Right Panel Title -->
+          <text x="600" y="20" font-size="12.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(b) Latent Normal
+            Integration (Gaussian Copula)</text>
+
+          <!-- Transformation Box -->
+          <rect x="462" y="42" width="276" height="54" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="600" y="64" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#0f766e">Map Each Arc via
+            Copula Identity</text>
+          <text x="600" y="84" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">ρ = 2 sin(π r /
+            6)</text>
+
+          <!-- Down Arrow -->
+          <line x1="530" y1="96" x2="530" y2="140" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
+          <text x="542" y="122" font-size="11" font-weight="bold" text-anchor="start" fill="#475569">Impose DAG Cond.
+            Indep.</text>
+
+          <!-- Latent Correlation Matrix Box -->
+          <rect x="462" y="144" width="276" height="68" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="600" y="167" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Build Full
+            Latent
+            Correlation Matrix Σ</text>
+          <text x="600" y="186" font-size="11" text-anchor="middle" fill="#334155">Z = (Z₁, Z₂, Z₃) ~ N(0, Σ)</text>
+          <text x="600" y="203" font-size="10" text-anchor="middle" fill="#64748b">(Missing arcs encode zero partial
+            corr.)</text>
+        </svg>
+      </div>
+
+      <h3>2.3 Multivariate Conditional Inference Procedure in a Copula BN</h3>
+      <p>Once the network-wide latent correlation matrix $\Sigma$ is constructed, the <a
+          href="Copula_en.html#sec2">4-step bivariate Gaussian copula pipeline</a> generalizes seamlessly to any number
+        of nodes ($n$). Let $E$ denote the set of observed evidence nodes and $T$ denote the unobserved target nodes to
+        predict or diagnose. Inference proceeds in three analytical steps:</p>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 1</span>
+        <strong>Project Observed Evidence Nodes to Latent Normal Space ($x_E \to u_E \to z_E$)</strong>
+        <p>Pass each currently observed variable (e.g., today's upstream gauge level, cumulative rainfall, soil
+          moisture)
+          through its empirical CDF $F_E$ and inverse standard normal CDF $\Phi^{-1}$ to form the latent normal vector
+          $z_E = \Phi^{-1}(F_E(x_E))$. If a sensor drops out, simply omit that variable from $E$ and condition on the
+          remaining observations.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 2</span>
+        <strong>Multivariate Conditional Update in Latent Normal Space ($Z_T \mid Z_E = z_E$)</strong>
+        <p>Partitioning the full latent correlation matrix $\Sigma$ into target ($T$) and evidence ($E$) blocks yields
+          the exact conditional latent distribution in <strong>closed form via a single matrix operation</strong>—with
+          no
+          numerical integration or MCMC required:</p>
+        <div class="math-block">
+          $$\Sigma = \begin{pmatrix} \Sigma_{TT} & \Sigma_{TE} \\ \Sigma_{ET} & \Sigma_{EE} \end{pmatrix} \quad \implies
+          \quad Z_T \mid (Z_E = z_E) \sim \mathcal{N}\!\left(\Sigma_{TE}\Sigma_{EE}^{-1}z_E, \; \Sigma_{TT} -
+          \Sigma_{TE}\Sigma_{EE}^{-1}\Sigma_{ET}\right)$$
+        </div>
+        <p>This single equation uniformly handles <strong>forward prediction</strong> (cause $\to$ effect),
+          <strong>backward diagnosis</strong> (effect $\to$ cause), and <strong>missing-sensor imputation</strong>.
+        </p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 3</span>
+        <strong>Return to Percentiles and Invert to Physical Units ($Z_T \to U_T \to X_T$)</strong>
+        <p>Transform forecast draws (or Monte Carlo ensemble samples) $Z_T$ from Step 2 through the standard normal CDF
+          $\Phi(\cdot)$ back into percentiles $U_T = \Phi(Z_T)$, then apply each target node's empirical inverse CDF
+          $F_T^{-1}$ to recover the skewed, physical-unit conditional forecast distribution $X_T = F_T^{-1}(U_T)$.</p>
+      </div>
+
+      <div class="callout amber">
+        <span class="callout-title">Practical Caveat: Validating the Gaussian Copula and Arc Pruning</span>
+        In exchange for fast, closed-form conditional updates, an NPBN approximates all joint dependencies using a
+        Gaussian copula ($\lambda_U = \lambda_L = 0$; see <a href="Copula_en.html#sec2">Section 2 of the Copula
+          Summary</a>) and prunes weak arcs via conditional independence. Consequently, one must quantitatively verify
+        that the sparse Gaussian-copula network preserves empirical dependence—motivating the <a
+          href="#sec4">$d$-calibration
+          validation framework in Section 4</a>.
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="sec3">
+      <h2>3. Extension to Dynamic Bayesian Networks (DBN &amp; 2TBN Structure)</h2>
+      <p>A <strong>Dynamic Bayesian Network (DBN)</strong> extends the static Bayesian network from Section 1 by
+        explicitly modeling <strong>transitions across time ($t \to t+1$)</strong>. Here, "dynamic" does not mean the
+        graph topology changes at every moment; rather, it means the model dynamically tracks how system states evolve
+        across successive time slices.</p>
+
+      <h3>3.1 Two-Time-Slice Bayesian Network (2TBN) Architecture</h3>
+      <p>Unfolding a 10-day forecast horizon for 12 variables ($12 \times 10 = 120$ nodes) into a single static BN would
+        trigger the curse of dimensionality and make correlation matrix estimation intractable. Instead, a 2TBN defines
+        <strong>only two consecutive time slices ($t$ and $t+1$, totaling 24 nodes)</strong>:
+      </p>
+      <ul>
+        <li><strong>Intra-slice arcs:</strong> Spatial and physical causal dependencies within the same time step (e.g.,
+          $P_t \to S_t \to Q_t$).</li>
+        <li><strong>Inter-slice arcs:</strong> Temporal persistence and lag effects carrying across from time $t$ to
+          time $t+1$ (e.g., $Q_t \to Q_{t+1}$).</li>
+        <li><strong>First-order Markov property &amp; time homogeneity:</strong> The state at $t+1$ depends solely on
+          the immediately preceding slice $t$, and the $t \to t+1$ transition structure remains stationary over time.
+        </li>
+        <li><strong>Unrolling:</strong> Copying and chaining the 2TBN template $H$ times along the time axis
+          sequentially
+          generates multi-step future forecast trajectories over 10–15 days (rollout).</li>
+      </ul>
+
+      <h3>3.2 Hybrid Construction of Conditional Independence (Arc Selection)</h3>
+      <ol>
+        <li><strong>Stage 1 (Domain Knowledge):</strong> Establish the physical backbone following river flow from
+          upstream to downstream (upstream Sourou $\to$ midstream Lawra $\to$ downstream Chache).</li>
+        <li><strong>Stage 2 (Data-Driven Expansion):</strong> Inspect rank correlations and structural similarity
+          scores to incrementally add strongly correlated arcs.</li>
+        <li><strong>Stage 3 (Physical Plausibility Filtering):</strong> Reject spurious correlations that cannot be
+          justified by spatial proximity or hydrological causality, yielding a parsimonious DAG.</li>
+      </ol>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="sec4">
+      <h2>4. Bui Dam Case Study &amp; Validation Framework</h2>
+      <p>Using the 2019 emergency spillway release event at the Bui Dam in Ghana's Black Volta basin as a case study,
+        DBN-based probabilistic inflow forecasting was coupled with CVaR-based Stochastic Model Predictive Control
+        (SMPC).</p>
+
+      <h3>4.1 Direct DBN vs. Residual DBN and Basin Lag Identification</h3>
+      <ul>
+        <li><strong>Hydrological lag identification:</strong> For each explanatory variable $X$ and target inflow $Y$,
+          the physical travel time lag $L$ was selected as the shift maximizing the absolute Spearman rank correlation
+          $|\rho_s(X_{t-L}, Y_t)|$.</li>
+        <li><strong>Direct DBN:</strong> A surrogate model predicting Chache inflow directly from meteorological and
+          hydrological drivers ($P_{7D}$, antecedent precipitation index API, soil moisture, upstream flows). It is
+          computationally fast and captures rising flood limbs well, though a single fixed lag and first-order Markov
+          assumption tend to underestimate peak magnitudes and lag during flood recession.</li>
+        <li><strong>Residual DBN:</strong> A post-processing model trained on log-multiplicative residuals
+          $\eta_t = \ln(Q_{obs,t} / Q_{mod,t})$ of an existing deterministic hydrological model. Strong autocorrelation
+          (persistence) in the residuals causes initial errors to carry forward over the horizon.</li>
+      </ul>
+
+      <h3>4.2 Theoretical Basis of the $d$-calibration Score &amp; Three Correlation Matrices</h3>
+      <p>In a 24-variable high-dimensional DBN, pairwise scatter plots alone cannot assess global model fit. Therefore,
+        the thesis uses the <strong>$d$-calibration score</strong>, which measures information-geometric similarity
+        across
+        the entire correlation matrix.</p>
+
+      <h4>(1) Mathematical Derivation and Similarity Properties of $d$-calibration</h4>
+      <p>The overlap between two zero-mean multivariate normal distributions $\mathcal{N}(0, \Sigma_1)$ and
+        $\mathcal{N}(0, \Sigma_2)$ is measured by the <strong>Bhattacharyya coefficient ($\eta$)</strong>:</p>
+      <div class="math-block">
+        $$\eta = \frac{\det(\Sigma_1)^{1/4}\det(\Sigma_2)^{1/4}}{\det\left[\frac{1}{2}(\Sigma_1 +
+        \Sigma_2)\right]^{1/2}}$$
+      </div>
+      <p>The <strong>Hellinger distance ($H$)</strong> between the two distributions is defined as
+        $H(\Sigma_1, \Sigma_2) = \sqrt{1 - \eta}$, and subtracting it from $1$ gives the $d$-calibration score:</p>
+      <div class="math-block">
+        $$d_{cal}(\Sigma_1, \Sigma_2) = 1 - H(\Sigma_1, \Sigma_2) = 1 - \sqrt{1 - \eta}$$
+      </div>
+      <ul>
+        <li><strong>Behavior at extremes ($0 \lt d_{cal} \le 1$):</strong> When two correlation matrices match
+          identically ($\Sigma_1 = \Sigma_2$), the determinant ratio $\eta = 1$, giving $H = 0$ and
+          <strong>$d_{cal} = 1$</strong>. Conversely, as two correlation structures diverge completely, $\eta \to 0$ and
+          <strong>$d_{cal} \to 0$</strong>. Thus, $d_{cal}$ is a <strong>similarity metric</strong>, not a distance.
+        </li>
+        <li><strong>Advantage over element-wise metrics (e.g., RMSE):</strong> Correlation matrices must remain positive
+          semi-definite and reside on a Riemannian covariance manifold. Unlike element-wise averaging, Hellinger-based
+          $d_{cal}$ jointly captures differences in overall multivariate volume and directional structure.</li>
+      </ul>
+
+      <h4>(2) Exact Meaning of the Three Rank-Correlation Matrices Used for Validation</h4>
+      <p>To separately test the validity of the Gaussian copula assumption and the information lost by pruning arcs in
+        the
+        DAG, <strong>three rank-correlation matrices</strong> are constructed and compared:</p>
+
+      <div class="matrix-card">
+        <h4>1) $R_{ERC}$ — Empirical Rank-Correlation Matrix</h4>
+        <ul>
+          <li><strong>Computation:</strong> Directly compute <strong>Spearman's rank correlation $\rho_s(X_i,
+              X_j)$</strong>
+            across all variable pairs $(X_i, X_j)$ from observed (raw or deseasonalised) time series without any
+            distributional assumptions.</li>
+          <li><strong>Meaning (Ground Truth):</strong> Represents the <strong>unfiltered multivariate dependence
+              structure
+              actually present in the hydrological data</strong>, free of Gaussian copula or graph assumptions.</li>
+        </ul>
+      </div>
+
+      <div class="matrix-card">
+        <h4>2) $R_{NRC}$ — Normal Rank-Correlation Matrix</h4>
+        <ul>
+          <li><strong>Computation (3-step transformation):</strong>
+            <ol>
+              <li>Map each observed variable through its empirical CDF and inverse standard normal CDF into latent
+                normal
+                scores ($Z_i = \Phi^{-1}(F_i(X_i))$).</li>
+              <li>Compute the standard <strong>Pearson linear correlation matrix $\Sigma = [\rho_{ij}]$</strong> across
+                all pairs in normal-score space.</li>
+              <li>Convert each $\rho_{ij}$ back into rank correlation via the Gaussian copula identity
+                $r_{ij} = \frac{6}{\pi}\arcsin(\rho_{ij}/2)$.</li>
+            </ol>
+          </li>
+          <li><strong>Meaning (Saturated Gaussian Copula Benchmark):</strong> Represents the <em>theoretical
+              rank-correlation
+              matrix that would appear if the data followed a fully connected (saturated) multivariate Gaussian
+              copula</em>.</li>
+        </ul>
+      </div>
+
+      <div class="matrix-card">
+        <h4>3) $R_{BNRC}$ — Bayesian Network-Implied Rank-Correlation Matrix</h4>
+        <ul>
+          <li><strong>Computation:</strong> In the <strong>parsimonious DBN</strong> where unnecessary arcs have been
+            pruned, propagate the conditional rank correlations assigned to the remaining arcs through the DAG paths to
+            reconstruct the implied rank correlation for every variable pair.</li>
+          <li><strong>Meaning (Dependence Reproduced by the Sparse DBN):</strong> Pairs lacking direct arcs (assumed
+            conditionally independent) acquire correlation solely through indirect paths, showing the <strong>exact
+              dependence structure achievable by the simplified DBN model</strong>.</li>
+        </ul>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 24%;">Validation Stage</th>
+            <th style="width: 22%;">Matrix Pair Compared</th>
+            <th style="width: 54%;">Validation Purpose &amp; Thesis Findings</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Stage 1 Validation:<br>Copula Assumption</strong></td>
+            <td>$d_{cal}(R_{ERC}, \; R_{NRC})$</td>
+            <td><strong>"Does modeling hydrological data with a Gaussian copula introduce
+                distortion?"</strong><br>Compares
+              empirical correlations ($R_{ERC}$) against the saturated Gaussian copula benchmark ($R_{NRC}$). On
+              deseasonalised models, $d_{cal} = 0.85 \sim 0.86$, confirming that the Gaussian copula assumption is
+              statistically sound.</td>
+          </tr>
+          <tr>
+            <td><strong>Stage 2 Validation:<br>Network Structure</strong></td>
+            <td>$d_{cal}(R_{BNRC}, \; R_{NRC})$<br>and<br>$d_{cal}(R_{BNRC}, \; R_{ERC})$</td>
+            <td><strong>"How much correlation information is sacrificed by pruning arcs (conditional
+                independence)?"</strong><br>Comparing
+              $R_{BNRC}$ to $R_{NRC}$ measures how well the sparse DAG approximates the saturated network, while
+              comparing $R_{BNRC}$ to $R_{ERC}$ ($0.34 \sim 0.47$) measures how faithfully the final DBN reproduces
+              real-world data dependence.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4.3 Deseasonalisation Effect, Rollout Modes &amp; CVaR-Based SMPC Integration</h3>
+      <ul>
+        <li><strong>Impact of Deseasonalisation:</strong> During the wet season (July–October), raw data exhibit
+          inflated correlations driven by the shared seasonal cycle. The <strong>anomaly model (Rain-Anom)</strong>,
+          constructed by subtracting daily climatological means, improved the out-of-sample Energy Skill Score (ESS) by
+          roughly 15% over the climatology ensemble and achieved the strongest generalization.</li>
+        <li><strong>Rollout Comparison:</strong> <em>Monte Carlo rollout</em> samples random draws at every step,
+          preserving upper-tail uncertainty at the cost of accumulating sampling variance; <em>Conditional-mean
+            rollout</em> propagates conditional means ($K = 200$ average), yielding smooth trajectories with narrower
+          extreme-tail spread.</li>
+        <li><strong>CVaR-Based SMPC Optimization:</strong> The 500 inflow ensemble members generated by the DBN were
+          reduced via k-means clustering into 100 representative scenarios ($\pi_s$), and soft CVaR constraints on the
+          threshold reservoir level ($183\,\text{m}$) across risk-aversion levels $\beta \in \{0.7, 0.8, 0.9, 0.99\}$
+          were solved via Linear Programming (LP). Compared with actual manual operation in 2019, proactive pre-release
+          through hydropower turbines <strong>reduced unproductive spillway releases by 8–77% and lowered peak reservoir
+            levels by 0.1–1.0 m</strong>.</li>
+      </ul>
+    </section>
+  </div>
+</body>
+
+</html>

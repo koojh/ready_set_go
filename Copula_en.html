@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copula Theory, Gaussian Copula &amp; Rank Correlation Summary</title>
+
+  <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* Back to index and document/language navigation */
+    .back-nav {
+      max-width: 960px;
+      margin: 0 auto 1.5rem auto;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #475569;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .back-btn:hover {
+      color: #2563eb;
+      border-color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .back-btn.lang-btn {
+      color: #1e3a5f;
+      border-color: #93c5fd;
+      background-color: #eff6ff;
+      font-weight: 600;
+    }
+
+    .back-btn.lang-btn:hover {
+      color: #1d4ed8;
+      border-color: #2563eb;
+      background-color: #dbeafe;
+    }
+
+    /* Hide navigation bar when printing to PDF */
+    @media print {
+      .back-nav {
+        display: none;
+      }
+    }
+
+    :root {
+      --primary: #1e3a5f;
+      --secondary: #2b6cb0;
+      --accent: #0d9488;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --callout-blue: #eff6ff;
+      --callout-teal: #f0fdfa;
+      --callout-amber: #fffbeb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.75;
+      color: var(--text);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 3rem 3.5rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    header .subtitle {
+      color: var(--secondary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.95rem;
+      color: var(--primary);
+      line-height: 1.3;
+    }
+
+    header .meta {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    nav.toc {
+      background: var(--code-bg);
+      padding: 1.25rem 1.75rem;
+      border-radius: 10px;
+      margin-bottom: 2.5rem;
+      border-left: 4px solid var(--secondary);
+    }
+
+    nav.toc h2 {
+      margin: 0 0 0.6rem 0;
+      font-size: 1.05rem;
+      color: var(--primary);
+      border: none;
+      padding: 0;
+    }
+
+    nav.toc ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    nav.toc li {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    nav.toc a {
+      color: var(--secondary);
+      text-decoration: none;
+    }
+
+    nav.toc a:hover {
+      text-decoration: underline;
+    }
+
+    section a {
+      color: var(--secondary);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    section a:hover {
+      color: var(--primary);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    h3 {
+      color: var(--secondary);
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    h4 {
+      color: #334155;
+      font-size: 1.05rem;
+      margin-top: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0.75rem 0;
+    }
+
+    ul,
+    ol {
+      margin: 0.6rem 0 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.45rem;
+    }
+
+    .math-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .callout {
+      padding: 1.15rem 1.4rem;
+      border-radius: 8px;
+      margin: 1.25rem 0;
+      border-left: 4px solid var(--secondary);
+      background: var(--callout-blue);
+    }
+
+    .callout.teal {
+      border-left-color: var(--accent);
+      background: var(--callout-teal);
+    }
+
+    .callout.amber {
+      border-left-color: #d97706;
+      background: var(--callout-amber);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--primary);
+      display: block;
+    }
+
+    .callout.amber .callout-title {
+      color: #92400e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.95rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .pipeline-step {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem 1.3rem;
+      margin: 1rem 0;
+      background: #ffffff;
+    }
+
+    .pipeline-step .step-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.4rem;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin: 1.4rem 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.75rem 1.25rem;
+      }
+
+      header h1 {
+        font-size: 1.55rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="back-nav">
+    <a class="back-btn" href="index.html">← Back to Index</a>
+    <div class="nav-actions">
+      <a class="back-btn lang-btn" href="Copula_ko.html">한국어</a>
+      <a class="back-btn" href="Bayesian_Network_en.html">Go to Bayesian Network (BN) →</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <div class="subtitle">Probabilistic Dependence Modeling Reference</div>
+      <h1>Copula Theory, Gaussian Copula, and Rank Correlation Summary</h1>
+      <div class="meta">Reference: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
+          probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <h2>Table of Contents</h2>
+      <ul>
+        <li><a href="#sec1">1. Essence of Copulas: Separating Marginals from Dependence Structure</a></li>
+        <li><a href="#sec2">2. Gaussian Copula and the 4-Step Probabilistic Inference Mechanism</a></li>
+        <li><a href="#sec3">3. Relationship with Spearman's Rank Correlation ($r$)</a></li>
+      </ul>
+    </nav>
+
+    <!-- SECTION 1 -->
+    <section id="sec1">
+      <h2>1. Essence of Copulas: Separating Marginals from Dependence Structure</h2>
+      <p>A <strong>copula</strong> is the core mathematical tool used in models such as <a
+          href="Bayesian_Network_en.html#sec2">Non-Parametric Bayesian Networks (NPBNs)</a> to couple continuous,
+        non-Gaussian hydrological variables into a unified multivariate joint distribution.</p>
+      <p>A copula is a linking function that completely separates each variable's individual probability distribution
+        (its <strong>marginal distribution</strong>) from the joint statistical association among variables (the
+        <strong>dependence structure</strong>). This allows zero-inflated, right-skewed rainfall ($\text{mm}$) and
+        heavy-tailed river discharge ($\text{m}^3/\text{s}$) to be modeled jointly without forcing either variable into a
+        distorted normal distribution.</p>
+
+      <h3>1.1 Sklar's Theorem</h3>
+      <p>Let $F_1(x_1)$ and $F_2(x_2)$ be the individual cumulative distribution functions (CDFs) of continuous random
+        variables $X_1$ and $X_2$, and let $F(x_1, x_2)$ be their joint CDF. Then there always exists a unique copula
+        function $C$ linking the marginals to the joint distribution:</p>
+      <div class="math-block">
+        $$F(x_1, x_2) = C\big(F_1(x_1), \, F_2(x_2)\big) = C(u_1, u_2)$$
+      </div>
+      <ul>
+        <li>$u_1 = F_1(x_1) \in [0, 1]$, &nbsp; $u_2 = F_2(x_2) \in [0, 1]$ (cumulative percentiles / non-exceedance
+          probabilities of each variable)</li>
+      </ul>
+      <p>This theorem generalizes directly to an $n$-dimensional multivariate network, decomposing the joint CDF of $n$
+        continuous random variables into their individual marginal CDFs $F_i(x_i)$ and an $n$-dimensional copula $C$:</p>
+      <div class="math-block">
+        $$F(x_1, x_2, \dots, x_n) = C\big(F_1(x_1), \, F_2(x_2), \, \dots, \, F_n(x_n)\big)$$
+      </div>
+
+      <h3>1.2 Probability Integral Transform</h3>
+      <p>Regardless of how skewed or irregular the original distribution of a continuous random variable $X$ may be,
+        transforming it through its own CDF into the cumulative percentile $U = F_X(X)$ always yields a <strong>standard
+          uniform distribution $U \sim \mathcal{U}(0, 1)$</strong>:</p>
+      <div class="math-block">
+        $$P(U \le u) = P(F_X(X) \le u) = P(X \le F_X^{-1}(u)) = F_X(F_X^{-1}(u)) = u \quad (0 \le u \le 1)$$
+      </div>
+      <div class="callout">
+        <span class="callout-title">Core Intuition</span>
+        By temporarily stripping away physical units ($\text{mm}, \text{m}^3/\text{s}$) and asymmetric marginal shapes
+        and mapping every variable onto the unit square $[0, 1]^2$, all variables sit on an identical uniform scale.
+        What remains is purely the <strong>intrinsic joint co-movement pattern</strong> between variables.
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="sec2">
+      <h2>2. Gaussian Copula and the 4-Step Probabilistic Inference Mechanism</h2>
+      <p>The Gaussian copula models pure dependence in percentile space by borrowing the correlation structure of a
+        multivariate normal distribution.</p>
+
+      <h3>2.1 Gaussian Copula Formulation</h3>
+      <div class="math-block">
+        $$C_\rho(u_1, u_2) = \Phi_\rho\left(\Phi^{-1}(u_1), \; \Phi^{-1}(u_2)\right)$$
+      </div>
+      <p>Expressed in terms of the copula probability density function $c_\rho$ (where $z_i = \Phi^{-1}(u_i)$):</p>
+      <div class="math-block">
+        $$c_\rho(u_1, u_2) = \frac{1}{\sqrt{1-\rho^2}} \exp\left( -\frac{\rho^2 z_1^2 - 2\rho z_1 z_2 + \rho^2
+        z_2^2}{2(1-\rho^2)} \right)$$
+      </div>
+      <ul>
+        <li>$\Phi^{-1}(\cdot)$: Inverse CDF (quantile function) of the standard normal distribution $\mathcal{N}(0, 1)$</li>
+        <li>$\Phi_\rho$: Bivariate standard normal CDF parameterized by correlation coefficient $\rho$</li>
+      </ul>
+
+      <h3>2.2 True Meaning of the Parameter $\rho$</h3>
+      <ul>
+        <li><strong>Not the Pearson correlation of raw data:</strong> $\rho$ is not the direct linear correlation between
+          observed rainfall ($\text{mm}$) and river discharge ($\text{m}^3/\text{s}$).</li>
+        <li><strong>Correlation in Latent Normal Space:</strong> It is the Pearson linear correlation
+          ($\text{Corr}(Z_1, Z_2)$) between the latent normal scores $Z_1 = \Phi^{-1}(u_1)$ and $Z_2 = \Phi^{-1}(u_2)$
+          obtained after mapping percentiles through the inverse standard normal CDF.</li>
+        <li><strong>Difference from a multivariate normal distribution:</strong> A multivariate normal model forces
+          rainfall and discharge themselves to be Gaussian—producing physically impossible negative values—whereas the
+          Gaussian copula <strong>preserves each variable's non-Gaussian empirical CDF 100%</strong> and uses the
+          Gaussian structure solely to compute dependence.</li>
+      </ul>
+
+      <h3>2.3 4-Step Inference Pipeline for Probabilistic Inflow Forecasting</h3>
+      <p>Given today's observed rainfall $x_1$, the pipeline for deriving the conditional probability distribution (and
+        ensemble scenarios) of tomorrow's river discharge $Q$ operates in the following four steps:</p>
+
+      <div class="diagram-box">
+        <svg width="780" height="150" viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+            </marker>
+          </defs>
+          <!-- Box 1 -->
+          <rect x="10" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="87" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Step 1: Percentile</text>
+          <text x="87" y="70" font-size="11" text-anchor="middle" fill="#334155">Observed rain x₁</text>
+          <text x="87" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">u₁ = F₁(x₁) ∈
+            [0,1]</text>
+          <text x="87" y="106" font-size="10" text-anchor="middle" fill="#64748b">(Empirical CDF)</text>
+
+          <line x1="165" y1="72" x2="205" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 2 -->
+          <rect x="210" y="25" width="175" height="95" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="297" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Step 2: Latent
+            Normal</text>
+          <text x="297" y="68" font-size="11" text-anchor="middle" fill="#334155">z₁ = Φ⁻¹(u₁)</text>
+          <text x="297" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">Z₂|z₁ ~ N(ρz₁,
+            1-ρ²)</text>
+          <text x="297" y="106" font-size="10" text-anchor="middle" fill="#64748b">(Exact Gaussian space)</text>
+
+          <line x1="385" y1="72" x2="425" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 3 -->
+          <rect x="430" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="507" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Step 3: Back to
+            [0,1]</text>
+          <text x="507" y="70" font-size="11" text-anchor="middle" fill="#334155">Normal CDF transform</text>
+          <text x="507" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">U₂ = Φ(Z₂) ∈
+            [0,1]</text>
+          <text x="507" y="106" font-size="10" text-anchor="middle" fill="#64748b">(Conditional percentile)</text>
+
+          <line x1="585" y1="72" x2="625" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 4 -->
+          <rect x="630" y="25" width="140" height="95" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="700" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">Step 4: Physical
+            Q</text>
+          <text x="700" y="70" font-size="11" text-anchor="middle" fill="#334155">Historical Inv-CDF</text>
+          <text x="700" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#b45309">Q = F₂⁻¹(U₂)</text>
+          <text x="700" y="106" font-size="10" text-anchor="middle" fill="#64748b">(Restores skewness)</text>
+        </svg>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 1</span>
+        <strong>Percentile Transformation of Observed Rainfall ($x_1 \to u_1$)</strong>
+        <p>Evaluate the observed rainfall $x_1$ using the historical rainfall CDF ($F_1$) to obtain its percentile
+          $u_1 = F_1(x_1) \in [0, 1]$. For example, if today's rain falls at the 12th percentile, then $u_1 = 0.12$.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 2</span>
+        <strong>Projection to Standard Normal Space &amp; Conditional Inference ($u_1 \to z_1 \to Z_2$)</strong>
+        <p>Map the percentile $u_1$ through the inverse standard normal CDF to obtain the latent normal score
+          $z_1 = \Phi^{-1}(u_1)$ ($u_1 = 0.12 \implies z_1 \approx -1.17$). By the conditional probability law of the
+          bivariate normal distribution, the latent variable $Z_2$ for tomorrow's discharge conditioned on $Z_1 = z_1$
+          follows an <strong>exact 1-D Gaussian distribution</strong>:</p>
+        <div class="math-block">
+          $$Z_2 \mid (Z_1 = z_1) \sim \mathcal{N}\left(\rho z_1, \; 1 - \rho^2\right)$$
+        </div>
+        <p>Note: The discharge percentile $U_2$ itself is not normal; rather, its normal-score transformation
+          $Z_2 = \Phi^{-1}(U_2)$ follows a Gaussian distribution.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 3</span>
+        <strong>Returning to Discharge Percentiles via Standard Normal CDF ($Z_2 \to U_2$)</strong>
+        <p>Pass the conditional $Z_2$ distribution (or Monte Carlo samples drawn from it) back through the standard
+          normal CDF $\Phi(\cdot)$. This maps values on $(-\infty, +\infty)$ back onto $[0, 1]$, yielding the
+          <strong>conditional percentile distribution of discharge $U_2 = \Phi(Z_2)$</strong>.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 4</span>
+        <strong>Restoring Physical Units via Historical Inverse Discharge CDF ($U_2 \to Q$)</strong>
+        <p>Apply the historical inverse discharge CDF (quantile function $F_2^{-1}$) to $U_2$ to obtain the forecast
+          distribution in physical units ($\text{m}^3/\text{s}$): $Q = F_2^{-1}(U_2)$. In this final step, Gaussian
+          symmetry disappears and the basin's true asymmetry and heavy right tail are restored.</p>
+      </div>
+
+      <div class="callout amber">
+        <span class="callout-title">Structural Limitation of the Gaussian Copula (Zero Tail Dependence)</span>
+        Mathematically, whenever $\rho \lt 1$, both the upper and lower tail dependence coefficients of a Gaussian copula
+        equal zero ($\lambda_U = \lambda_L = 0$). Because joint extreme events become asymptotically independent, the
+        Gaussian copula can slightly underestimate simultaneous extreme flood peaks during severe rainstorms.
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="sec3">
+      <h2>3. Relationship with Spearman's Rank Correlation ($r$)</h2>
+      <p>Spearman's rank correlation and copulas are not competing alternatives. <strong>The copula serves as the
+          probabilistic engine (the functional framework)</strong> for conditional inference and scenario sampling, while
+        <strong>Spearman's rank correlation serves as the empirical measurement and calibration tool</strong> that
+        populates the copula parameter $\rho$ from data.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">Dimension</th>
+            <th style="width: 39%;">Spearman's Rank Correlation ($r$ or $\rho_s$)</th>
+            <th style="width: 39%;">Copula ($C(u_1, u_2)$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Mathematical Form</strong></td>
+            <td>A single scalar number ($-1 \le r \le 1$)</td>
+            <td>A full multidimensional joint probability surface</td>
+          </tr>
+          <tr>
+            <td><strong>Primary Role</strong></td>
+            <td>A <strong>summary statistic</strong> capturing monotonic co-movement between two variables</td>
+            <td>A <strong>complete probabilistic model</strong> encoding joint dependence across all percentiles</td>
+          </tr>
+          <tr>
+            <td><strong>Simulation Capability</strong></td>
+            <td>Cannot generate future scenarios from a single scalar alone</td>
+            <td>Enables conditional distribution inversion and Monte Carlo ensemble sampling</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.1 Closed-Form Transformation Identity</h3>
+      <p>For a Gaussian copula, an exact one-to-one analytical identity links the rank-space Spearman correlation $r$ of
+        the observed data to the latent-normal-space Pearson correlation $\rho$:</p>
+      <div class="math-block">
+        $$r = \frac{6}{\pi}\arcsin\left(\frac{\rho}{2}\right) \quad \Longleftrightarrow \quad \rho =
+        2\sin\left(\frac{\pi}{6}r\right)$$
+      </div>
+      <p>Consequently, instead of running iterative numerical optimization (such as maximum likelihood estimation), one
+        only needs to compute Spearman's rank correlation $r$ from observations and apply a single trigonometric
+        evaluation to determine the Gaussian copula parameter $\rho$.</p>
+
+      <div class="callout teal">
+        <span class="callout-title">Next Step: Application to Bayesian Networks (BN)</span>
+        Together, the copula separation of marginals from dependence and the closed-form identity
+        $\rho = 2\sin(\frac{\pi}{6}r)$ form the core engine that quantifies arcs in continuous <strong>Non-Parametric
+          Bayesian Networks (NPBNs)</strong> and <strong>Dynamic Bayesian Networks (DBNs)</strong>. See <a
+          href="Bayesian_Network_en.html#sec2">Section 2 of the Bayesian Network Summary</a> for the full integration
+        structure and multivariate inference equations.
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>
+

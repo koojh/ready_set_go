@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>코퓰러(Copula) 이론 및 가우시안 코퓰러 확률 추론 정리</title>
+
+  <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    /* 목록으로 돌아가기 및 문서 이동 내비게이션 */
+    .back-nav {
+      max-width: 960px;
+      margin: 0 auto 1.5rem auto;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #475569;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .back-btn:hover {
+      color: #2563eb;
+      border-color: #2563eb;
+      background-color: #eff6ff;
+    }
+
+    .back-btn.lang-btn {
+      color: #1e3a5f;
+      border-color: #93c5fd;
+      background-color: #eff6ff;
+      font-weight: 600;
+    }
+
+    .back-btn.lang-btn:hover {
+      color: #1d4ed8;
+      border-color: #2563eb;
+      background-color: #dbeafe;
+    }
+
+    /* 문서를 PDF로 인쇄할 때는 내비게이션 숨김 */
+    @media print {
+      .back-nav {
+        display: none;
+      }
+    }
+
+    :root {
+      --primary: #1e3a5f;
+      --secondary: #2b6cb0;
+      --accent: #0d9488;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --callout-blue: #eff6ff;
+      --callout-teal: #f0fdfa;
+      --callout-amber: #fffbeb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+      line-height: 1.75;
+      color: var(--text);
+      background-color: var(--bg);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 3rem 3.5rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+      border: 1px solid var(--border);
+    }
+
+    header {
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    header .subtitle {
+      color: var(--secondary);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.95rem;
+      color: var(--primary);
+      line-height: 1.3;
+    }
+
+    header .meta {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    nav.toc {
+      background: var(--code-bg);
+      padding: 1.25rem 1.75rem;
+      border-radius: 10px;
+      margin-bottom: 2.5rem;
+      border-left: 4px solid var(--secondary);
+    }
+
+    nav.toc h2 {
+      margin: 0 0 0.6rem 0;
+      font-size: 1.05rem;
+      color: var(--primary);
+      border: none;
+      padding: 0;
+    }
+
+    nav.toc ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    nav.toc li {
+      margin: 0.25rem 0;
+      font-size: 0.95rem;
+    }
+
+    nav.toc a {
+      color: var(--secondary);
+      text-decoration: none;
+    }
+
+    nav.toc a:hover {
+      text-decoration: underline;
+    }
+
+    section a {
+      color: var(--secondary);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    section a:hover {
+      color: var(--primary);
+    }
+
+    h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    h3 {
+      color: var(--secondary);
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    h4 {
+      color: #334155;
+      font-size: 1.05rem;
+      margin-top: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0.75rem 0;
+    }
+
+    ul,
+    ol {
+      margin: 0.6rem 0 1rem 0;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.45rem;
+    }
+
+    .math-block {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1.1rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .callout {
+      padding: 1.15rem 1.4rem;
+      border-radius: 8px;
+      margin: 1.25rem 0;
+      border-left: 4px solid var(--secondary);
+      background: var(--callout-blue);
+    }
+
+    .callout.teal {
+      border-left-color: var(--accent);
+      background: var(--callout-teal);
+    }
+
+    .callout.amber {
+      border-left-color: #d97706;
+      background: var(--callout-amber);
+    }
+
+    .callout-title {
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--primary);
+      display: block;
+    }
+
+    .callout.amber .callout-title {
+      color: #92400e;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.95rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .pipeline-step {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 1rem 1.3rem;
+      margin: 1rem 0;
+      background: #ffffff;
+    }
+
+    .pipeline-step .step-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.4rem;
+    }
+
+    .diagram-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin: 1.4rem 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.75rem 1.25rem;
+      }
+
+      header h1 {
+        font-size: 1.55rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="back-nav">
+    <a class="back-btn" href="index.html">← 목록으로 돌아가기</a>
+    <div class="nav-actions">
+      <a class="back-btn lang-btn" href="Copula_en.html">English</a>
+      <a class="back-btn" href="Bayesian_Network_ko.html">베이지안 네트워크(BN) 문서로 이동 →</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header>
+      <div class="subtitle">Probabilistic Dependence Modeling Reference</div>
+      <h1>코퓰러(Copula) 이론, 가우시안 코퓰러 및 순위 상관 정리</h1>
+      <div class="meta">대상 문헌: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
+          probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <h2>목차</h2>
+      <ul>
+        <li><a href="#sec1">1. 코퓰러(Copula)의 본질: 주변분포와 의존구조의 분리</a></li>
+        <li><a href="#sec2">2. 가우시안 코퓰러(Gaussian Copula)와 4단계 확률 추론 메커니즘</a></li>
+        <li><a href="#sec3">3. 스피어만 순위 상관계수(Spearman's $r$)와의 관계</a></li>
+      </ul>
+    </nav>
+
+    <!-- SECTION 1 -->
+    <section id="sec1">
+      <h2>1. 코퓰러(Copula)의 본질: 주변분포와 의존구조의 분리</h2>
+      <p>연속형 수문 변수를 다루는 <a href="Bayesian_Network_ko.html#sec2">비모수 베이지안 네트워크(NPBN)</a> 등에서 비정규 확률변수들을 하나의 결합 구조로
+        엮어내기 위해 사용하는 핵심 수학 도구가 바로 <strong>코퓰러(Copula)</strong>입니다.</p>
+      <p>코퓰러는 각 변수의 개별적인 확률분포(<strong>주변분포, Marginal</strong>)와 변수들 간의 결합 의존성(<strong>의존구조, Dependence</strong>)을 완벽하게
+        분리하여 모델링하는 연결 함수입니다. 강우량($\text{mm}$)처럼 0이 많고 오른쪽으로 치우친 분포와 하천 유량($\text{m}^3/\text{s}$)처럼 긴 꼬리를 가진 비대칭 분포를 억지로
+        정규분포로 왜곡하지 않고 하나로 엮어낼 수 있습니다.</p>
+
+      <h3>1.1 스클라의 정리 (Sklar's Theorem)</h3>
+      <p>연속확률변수 $X_1, X_2$의 개별 누적분포함수(CDF)를 $F_1(x_1), F_2(x_2)$라 하고, 이들의 다변량 결합누적분포함수를 $F(x_1, x_2)$라 할 때, 둘 사이를 연결하는
+        유일한 코퓰러 함수 $C$가 항상 존재합니다.</p>
+      <div class="math-block">
+        $$F(x_1, x_2) = C\big(F_1(x_1), \, F_2(x_2)\big) = C(u_1, u_2)$$
+      </div>
+      <ul>
+        <li>$u_1 = F_1(x_1) \in [0, 1]$, &nbsp; $u_2 = F_2(x_2) \in [0, 1]$ (각 변수의 누적 백분위수)</li>
+      </ul>
+      <p>일반적으로 $n$차원 다변량 네트워크로 확장할 때도 동일하게 적용되어, $n$개 연속확률변수의 결합누적분포함수는 다음과 같이 각 변수의 주변분포 $F_i(x_i)$와 $n$차원 코퓰러 $C$로 분리됩니다.</p>
+      <div class="math-block">
+        $$F(x_1, x_2, \dots, x_n) = C\big(F_1(x_1), \, F_2(x_2), \, \dots, \, F_n(x_n)\big)$$
+      </div>
+
+      <h3>1.2 확률적분변환 (Probability Integral Transform)</h3>
+      <p>임의의 연속확률변수 $X$가 원래 어떤 찌그러진 분포를 띠더라도, 자신의 누적분포함수(CDF)를 통과시켜 누적 백분위값 $U = F_X(X)$로 변환하면 그 결과는 항상 <strong>표준 균등분포
+          $U \sim \mathcal{U}(0, 1)$</strong>를 따릅니다.</p>
+      <div class="math-block">
+        $$P(U \le u) = P(F_X(X) \le u) = P(X \le F_X^{-1}(u)) = F_X(F_X^{-1}(u)) = u \quad (0 \le u \le 1)$$
+      </div>
+      <div class="callout">
+        <span class="callout-title">핵심 직관</span>
+        원래 데이터의 단위($\text{mm}, \text{m}^3/\text{s}$)와 비대칭적 겉모습(Marginal)을 잠시 떼어내고 $[0, 1]^2$ 백분위 공간으로 옮기면, 모든 변수가 동일한
+        균등분포 척도 위에 놓이게 되어 <strong>'두 변수가 함께 움직이는 순수한 결합 패턴'</strong>만 남게 됩니다.
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="sec2">
+      <h2>2. 가우시안 코퓰러(Gaussian Copula)와 4단계 확률 추론 메커니즘</h2>
+      <p>가우시안 코퓰러는 백분위 공간에서의 순수한 의존성을 다변량 정규분포의 상관 구조를 빌려와 계산하는 기법입니다.</p>
+
+      <h3>2.1 가우시안 코퓰러 수식</h3>
+      <div class="math-block">
+        $$C_\rho(u_1, u_2) = \Phi_\rho\left(\Phi^{-1}(u_1), \; \Phi^{-1}(u_2)\right)$$
+      </div>
+      <p>확률밀도함수(Copula density, $c_\rho$) 형태로 표현하면 다음과 같습니다 ($z_i = \Phi^{-1}(u_i)$):</p>
+      <div class="math-block">
+        $$c_\rho(u_1, u_2) = \frac{1}{\sqrt{1-\rho^2}} \exp\left( -\frac{\rho^2 z_1^2 - 2\rho z_1 z_2 + \rho^2
+        z_2^2}{2(1-\rho^2)} \right)$$
+      </div>
+      <ul>
+        <li>$\Phi^{-1}(\cdot)$: 표준정규분포 $\mathcal{N}(0, 1)$의 역누적분포함수(분위수 함수)</li>
+        <li>$\Phi_\rho$: 상관계수 $\rho$를 모수로 갖는 2변량 표준정규분포의 누적분포함수</li>
+      </ul>
+
+      <h3>2.2 모수 $\rho$ (로 / rho)의 진정한 의미</h3>
+      <ul>
+        <li><strong>원본 데이터의 피어슨 상관계수가 아닙니다:</strong> $\rho$는 관측된 강우량($\text{mm}$)과 유량($\text{m}^3/\text{s}$) 사이의 직접적인 선형
+          상관계수가 아닙니다.</li>
+        <li><strong>잠재 정규 공간(Latent Normal Space)에서의 상관계수:</strong> 백분위 $u_1, u_2$를 표준정규 역함수에 통과시켜 만든 가상의 정규점수 변수 $Z_1 =
+          \Phi^{-1}(u_1)$과 $Z_2 = \Phi^{-1}(u_2)$ 사이의 피어슨 선형 상관계수($\text{Corr}(Z_1, Z_2)$)를 의미합니다.</li>
+        <li><strong>다변량 정규분포와의 차이:</strong> 다변량 정규분포는 강우와 유량 자체를 정규분포로 강제하여 음수 강우 등 물리적 왜곡을 일으키지만, 가우시안 코퓰러는 <strong>각
+            변수의 비정규 경험적 분포(Empirical CDF)를 100% 보존</strong>하면서 오직 의존 구조 계산에만 가우시안 수식을 활용합니다.</li>
+      </ul>
+
+      <h3>2.3 유입량 확률분포 예측을 위한 4단계 추론 메커니즘</h3>
+      <p>오늘 강우량 $x_1$이 관측되었을 때 내일 하천 유량 $Q$의 조건부 확률분포(및 앙상블 시나리오)를 도출하는 전체 파이프라인은 다음 4단계로 작동합니다.</p>
+
+      <div class="diagram-box">
+        <svg width="780" height="150" viewBox="0 0 780 150" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+              orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+            </marker>
+          </defs>
+          <!-- Box 1 -->
+          <rect x="10" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="87" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">1단계: 백분위 변환</text>
+          <text x="87" y="70" font-size="11" text-anchor="middle" fill="#334155">관측 강우 x₁</text>
+          <text x="87" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">u₁ = F₁(x₁) ∈
+            [0,1]</text>
+          <text x="87" y="106" font-size="10" text-anchor="middle" fill="#64748b">(경험적 CDF 적용)</text>
+
+          <line x1="165" y1="72" x2="205" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 2 -->
+          <rect x="210" y="25" width="175" height="95" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
+          <text x="297" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">2단계: 잠재 정규
+            추론</text>
+          <text x="297" y="68" font-size="11" text-anchor="middle" fill="#334155">z₁ = Φ⁻¹(u₁)</text>
+          <text x="297" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">Z₂|z₁ ~ N(ρz₁,
+            1-ρ²)</text>
+          <text x="297" y="106" font-size="10" text-anchor="middle" fill="#64748b">(순수 가우시안 성립 지점)</text>
+
+          <line x1="385" y1="72" x2="425" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 3 -->
+          <rect x="430" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
+          <text x="507" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">3단계: 백분위 복귀</text>
+          <text x="507" y="70" font-size="11" text-anchor="middle" fill="#334155">정규 누적함수 통과</text>
+          <text x="507" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">U₂ = Φ(Z₂) ∈
+            [0,1]</text>
+          <text x="507" y="106" font-size="10" text-anchor="middle" fill="#64748b">(유량 백분위 조건부 분포)</text>
+
+          <line x1="585" y1="72" x2="625" y2="72" stroke="#2b6cb0" stroke-width="2" marker-end="url(#arrow)" />
+
+          <!-- Box 4 -->
+          <rect x="630" y="25" width="140" height="95" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+          <text x="700" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#92400e">4단계: 실제 유량
+            환산</text>
+          <text x="700" y="70" font-size="11" text-anchor="middle" fill="#334155">과거 유량 역CDF</text>
+          <text x="700" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#b45309">Q = F₂⁻¹(U₂)</text>
+          <text x="700" y="106" font-size="10" text-anchor="middle" fill="#64748b">(비정규 수문 특성 복원)</text>
+        </svg>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 1</span>
+        <strong>관측 강우의 백분위 변환 ($x_1 \to u_1$)</strong>
+        <p>관측된 강우량 $x_1$을 과거 강우 누적분포함수($F_1$)에 대입하여 $0 \sim 1$ 사이의 백분위 $u_1 = F_1(x_1)$을 구합니다. 예를 들어 오늘 비가 하위 12% 수준이라면
+          $u_1 = 0.12$가 됩니다.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 2</span>
+        <strong>표준정규 공간 투영 및 가우시안 코퓰러 조건부 추론 ($u_1 \to z_1 \to Z_2$)</strong>
+        <p>백분위 $u_1$을 표준정규 역함수에 넣어 잠재 정규값 $z_1 = \Phi^{-1}(u_1)$로 투영합니다 ($u_1=0.12 \implies z_1 \approx -1.17$). 2변량
+          표준정규분포의 조건부 확률 공식에 의해, $Z_1 = z_1$이 주어졌을 때 내일 유량의 잠재 변수 $Z_2$는 <strong>엄밀한 1차원 가우시안(정규분포)</strong>을 따릅니다.</p>
+        <div class="math-block">
+          $$Z_2 \mid (Z_1 = z_1) \sim \mathcal{N}\left(\rho z_1, \; 1 - \rho^2\right)$$
+        </div>
+        <p>※ 주의: 유량 백분위 $U_2$ 자체가 정규분포인 것이 아니라, $U_2$를 정규 척도로 펼친 잠재 변수 $Z_2 = \Phi^{-1}(U_2)$가 정규분포를 따르는 것입니다.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 3</span>
+        <strong>표준정규 누적함수를 통한 유량 백분위 복귀 ($Z_2 \to U_2$)</strong>
+        <p>2단계에서 도출된 $Z_2$ 정규분포(또는 여기서 추출한 몬테카를로 난수 샘플)를 다시 표준정규 누적분포함수 $\Phi(\cdot)$에 통과시킵니다. 이로써 $-\infty \sim
+          +\infty$ 범위의 정규분포가 다시 $[0, 1]$ 구간의 <strong>유량 백분위 조건부 분포 $U_2 = \Phi(Z_2)$</strong>로 매핑됩니다.</p>
+      </div>
+
+      <div class="pipeline-step">
+        <span class="step-badge">STEP 4</span>
+        <strong>과거 유량 역누적분포 적용을 통한 물리 단위 복원 ($U_2 \to Q$)</strong>
+        <p>도출된 백분위 분포 $U_2$를 과거 관측 유량의 역누적분포함수(분위수 함수, $F_2^{-1}$)에 대입하여 실제 $\text{m}^3/\text{s}$ 단위의 유량 분포 $Q =
+          F_2^{-1}(U_2)$를 얻습니다. 이 과정에서 정규분포의 대칭성은 사라지고, 실제 하천 유역 특유의 비대칭성과 긴 우측 꼬리가 복원됩니다.</p>
+      </div>
+
+      <div class="callout amber">
+        <span class="callout-title">가우시안 코퓰러의 구조적 한계 (꼬리 의존성 부재)</span>
+        수학적으로 $\rho \lt 1$인 한, 가우시안 코퓰러의 상한·하한 꼬리 의존 계수는 항상 0입니다 ($\lambda_U = \lambda_L = 0$). 즉, 극단적인 폭우 시 첨두 홍수 유량이
+        동시에 폭발할 확률을 점근적으로 독립 취급하므로 극치 피크를 다소 과소평가하는 경향이 나타납니다.
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="sec3">
+      <h2>3. 스피어만 순위 상관계수(Spearman's $r$)와의 관계</h2>
+      <p>스피어만 상관계수와 코퓰러는 서로 대체하는 관계가 아닙니다. <strong>코퓰러가 조건부 추론과 시나리오 샘플링을 수행하는 '엔진(함수 틀)'</strong>이라면, <strong>스피어만
+          상관계수는 그 엔진이 작동하도록 데이터에서 모수 $\rho$를 채워 넣는 '측정 및 변환 도구'</strong>입니다.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%;">비교 항목</th>
+            <th style="width: 39%;">스피어만 순위 상관계수 ($r$ 또는 $\rho_s$)</th>
+            <th style="width: 39%;">코퓰러 (Copula, $C(u_1, u_2)$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>수학적 형태</strong></td>
+            <td>단 하나의 숫자 (스칼라 값, $-1 \le r \le 1$)</td>
+            <td>다차원 결합 확률 곡면 (함수 전체)</td>
+          </tr>
+          <tr>
+            <td><strong>핵심 역할</strong></td>
+            <td>두 변수의 단조 증가 경향을 요약하는 <strong>단일 통계량</strong></td>
+            <td>모든 백분위 구간에서의 결합 구조를 담은 <strong>확률 모델</strong></td>
+          </tr>
+          <tr>
+            <td><strong>시뮬레이션 기능</strong></td>
+            <td>숫자 1개뿐이므로 미래 시나리오 샘플링 불가</td>
+            <td>조건부 분포 역산 및 몬테카를로 앙상블 추출 가능</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.1 해석적 변환 항등식 (Closed-form Identity)</h3>
+      <p>가우시안 코퓰러에서는 실제 데이터의 순위 공간에서의 스피어만 상관계수 $r$과 잠재 정규 공간의 피어슨 상관계수 $\rho$ 사이에 다음과 같은 엄밀한 일대일 항등식이 성립합니다.</p>
+      <div class="math-block">
+        $$r = \frac{6}{\pi}\arcsin\left(\frac{\rho}{2}\right) \quad \Longleftrightarrow \quad \rho =
+        2\sin\left(\frac{\pi}{6}r\right)$$
+      </div>
+      <p>따라서 반복적인 수치 최적화(최대우도추정법 등)를 거치지 않고도, 관측 데이터에서 스피어만 순위 상관계수 $r$만 계산하면 가우시안 코퓰러의 모수 $\rho$를 단 한 번의 삼각함수 연산으로 즉시
+        확정할 수 있습니다.</p>
+
+      <div class="callout teal">
+        <span class="callout-title">다음 단계: 베이지안 네트워크(BN)로의 적용</span>
+        위에서 정리한 코퓰러의 주변분포·의존구조 분리 원리와 스피어만 순위 상관계수 변환 항등식($\rho = 2\sin(\frac{\pi}{6}r)$)은 연속형 <strong>비모수 베이지안
+          네트워크(NPBN)</strong> 및 <strong>동적 베이지안 네트워크(DBN)</strong>의 각 화살표를 정량화하는 핵심 엔진으로 활용됩니다. 자세한 결합 원리와 다변량 추론 절차는
+        <a href="Bayesian_Network_ko.html#sec2">베이지안 네트워크(BN) 문서 2절</a>에서 확인할 수 있습니다.
+      </div>
+    </section>
+  </div>
+</body>
+
+</html>
+
