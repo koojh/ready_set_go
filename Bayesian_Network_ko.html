@@ -391,7 +391,7 @@
   <div class="container">
     <header>
       <div class="subtitle">Hydrological Probabilistic Forecasting &amp; Control Reference</div>
-      <h1>베이지안 네트워크(BN)의 원리, 코퓰러(Copula) 결합 및 DBN 적용 정리</h1>
+      <h1>수자원 운영관리를 위한 베이지안 네트워크(BN)의 원리, 코퓰러(Copula) 결합 및 DBN 적용 정리</h1>
       <div class="meta">대상 문헌: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
           probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
       </div>
@@ -535,8 +535,10 @@
     <!-- SECTION 2 -->
     <section id="sec2">
       <h2>2. 베이지안 네트워크에 코퓰러(Copula)를 적용하는 방법 (NPBN)</h2>
-      <p>1절에서 살펴본 베이지안 네트워크가 강우량($\text{mm}$), 토양수분, 하천 유량($\text{m}^3/\text{s}$)처럼 <strong>연속적이고 심하게 치우친 수문 변수</strong>를
-        데이터 왜곡 없이 다루기 위해 도입된 것이 바로 <strong>비모수 베이지안 네트워크(Non-Parametric Bayesian Network, NPBN)</strong>입니다. NPBN은 네트워크의 각
+      <p>1절에서 살펴본 베이지안 네트워크가 강우량($\text{mm}$), 토양수분, 하천 유량($\text{m}^3/\text{s}$)처럼 <strong>연속적이고 심하게 치우친 수문
+          변수</strong>를
+        데이터 왜곡 없이 다루기 위해 도입된 것이 바로 <strong>비모수 베이지안 네트워크(Non-Parametric Bayesian Network, NPBN)</strong>입니다. NPBN은 네트워크의
+        각
         노드와 화살표에 <a href="Copula_ko.html">코퓰러(Copula) 이론</a>을 직접 결합하여 정량화합니다.</p>
 
       <h3>2.1 기존 연속형 BN 접근법의 한계와 코퓰러 기반 NPBN의 해법</h3>
@@ -570,7 +572,8 @@
       <h3>2.2 DAG 구성 요소와 코퓰러의 결합 구조 (노드·화살표 정량화)</h3>
       <p>코퓰러 기반 NPBN에서는 베이지안 네트워크의 두 축인 <strong>노드</strong>와 <strong>화살표</strong>를 다음과 같이 분리하여 정량화합니다.</p>
       <ul>
-        <li><strong>노드(Node) $\leftrightarrow$ 주변분포($F_i$):</strong> 그래프의 각 노드 $X_i$에는 정규분포 같은 모수적 분포를 강제하지 않고, 관측 데이터로부터 직접
+        <li><strong>노드(Node) $\leftrightarrow$ 주변분포($F_i$):</strong> 그래프의 각 노드 $X_i$에는 정규분포 같은 모수적 분포를 강제하지 않고, 관측
+          데이터로부터 직접
           추정한 <strong>경험적 누적분포함수(Empirical CDF, $F_i$)</strong>를 그대로 할당합니다.</li>
         <li><strong>화살표(Arc, $X_j \to X_i$) $\leftrightarrow$ (조건부) 순위 상관계수($r$) 및 코퓰러 모수($\rho$):</strong>
           <ul>
@@ -578,7 +581,8 @@
               할당합니다.</li>
             <li>자식 노드 $X_i$에 여러 부모 노드($X_{p_1}, X_{p_2}, \dots, X_{p_k}$)가 동시에 화살표를 꽂는 경우, 부모의 순서를 정한 뒤 앞선 부모들을 통제한
               <strong>조건부 순위 상관계수(Conditional Rank Correlation)</strong> $r(X_{p_m}, X_i \mid X_{p_1}, \dots,
-              X_{p_{m-1}})$를 각 화살표에 순차적으로 부여합니다. 이 값들은 각 화살표마다 서로 독립적으로 선택해도 대수적 일관성(양의 정부호성)이 깨지지 않습니다.</li>
+              X_{p_{m-1}})$를 각 화살표에 순차적으로 부여합니다. 이 값들은 각 화살표마다 서로 독립적으로 선택해도 대수적 일관성(양의 정부호성)이 깨지지 않습니다.
+            </li>
             <li>할당된 모든 순위 상관계수 $r$은 <a href="Copula_ko.html#sec3">가우시안 코퓰러 항등식</a> $\rho =
               2\sin\left(\frac{\pi}{6}r\right)$을 통해 잠재 정규 공간의 (편)상관계수로 변환되며, DAG가 지정한 조건부 독립 구조(끊어진 화살표)와 결합하여 네트워크
               전체 변수를 아우르는 <strong>유일한 잠재 상관행렬 $\Sigma$</strong>를 형성합니다.</li>
@@ -596,7 +600,8 @@
           </defs>
 
           <!-- Left Panel Title -->
-          <text x="220" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(a) NPBN 정량화: 노드(주변분포) +
+          <text x="220" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(a) NPBN 정량화:
+            노드(주변분포) +
             화살표(순위 상관)</text>
 
           <!-- Parent 1 -->
@@ -619,27 +624,33 @@
           <text x="222" y="74" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₁, X₃)</text>
 
           <line x1="170" y1="172" x2="262" y2="128" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
-          <text x="224" y="176" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₂, X₃ | X₁)</text>
+          <text x="224" y="176" font-size="11" font-weight="bold" text-anchor="middle" fill="#2b6cb0">r(X₂, X₃ |
+            X₁)</text>
 
           <!-- Divider -->
           <line x1="442" y1="15" x2="442" y2="225" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4" />
 
           <!-- Right Panel Title -->
-          <text x="600" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(b) 잠재 정규 공간 통합 (Gaussian
+          <text x="600" y="20" font-size="13" font-weight="bold" text-anchor="middle" fill="#1e3a5f">(b) 잠재 정규 공간 통합
+            (Gaussian
             Copula)</text>
 
           <!-- Transformation Box -->
           <rect x="465" y="42" width="270" height="54" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5" />
-          <text x="600" y="64" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#0f766e">각 화살표를 코퓰러 항등식으로 변환</text>
-          <text x="600" y="84" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">ρ = 2 sin(π r / 6)</text>
+          <text x="600" y="64" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#0f766e">각 화살표를 코퓰러 항등식으로
+            변환</text>
+          <text x="600" y="84" font-size="11.5" font-weight="bold" text-anchor="middle" fill="#1e3a5f">ρ = 2 sin(π r /
+            6)</text>
 
           <!-- Down Arrow -->
           <line x1="540" y1="96" x2="540" y2="140" stroke="#1e3a5f" stroke-width="1.6" marker-end="url(#npbn-arrow)" />
-          <text x="552" y="122" font-size="11" font-weight="bold" text-anchor="start" fill="#475569">DAG 조건부 독립 반영</text>
+          <text x="552" y="122" font-size="11" font-weight="bold" text-anchor="start" fill="#475569">DAG 조건부 독립
+            반영</text>
 
           <!-- Latent Correlation Matrix Box -->
           <rect x="465" y="144" width="270" height="68" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
-          <text x="600" y="167" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">전체 잠재 상관행렬 Σ 구축</text>
+          <text x="600" y="167" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">전체 잠재 상관행렬 Σ
+            구축</text>
           <text x="600" y="186" font-size="11" text-anchor="middle" fill="#334155">Z = (Z₁, Z₂, Z₃) ~ N(0, Σ)</text>
           <text x="600" y="203" font-size="10" text-anchor="middle" fill="#64748b">(직접 연결 없는 쌍은 Σ⁻¹=0 구조로 유도)</text>
         </svg>
@@ -673,14 +684,15 @@
       <div class="pipeline-step">
         <span class="step-badge">STEP 3</span>
         <strong>백분위 복귀 및 물리 단위 역변환 ($Z_T \to U_T \to X_T$)</strong>
-        <p>2단계의 조건부 다변량 정규분포에서 추출한 예측값(또는 몬테카를로 앙상블 샘플) $Z_T$를 표준정규 누적분포함수 $\Phi(\cdot)$에 넣어 백분위 $U_T = \Phi(Z_T)$로 되돌린 뒤,
+        <p>2단계의 조건부 다변량 정규분포에서 추출한 예측값(또는 몬테카를로 앙상블 샘플) $Z_T$를 표준정규 누적분포함수 $\Phi(\cdot)$에 넣어 백분위 $U_T = \Phi(Z_T)$로 되돌린
+          뒤,
           각 목표 노드의 경험적 역누적분포함수 $F_T^{-1}$에 대입하여 실제 물리 단위($X_T = F_T^{-1}(U_T)$)의 비정규 예측 분포를 복원합니다.</p>
       </div>
 
       <div class="callout amber">
         <span class="callout-title">적용 시 유의점: 가우시안 코퓰러 가정과 구조 단순화의 검증 필요성</span>
-        NPBN은 계산 효율성과 해석적 조건부 갱신을 얻는 대신, 모든 의존성을 가우시안 코퓰러($\lambda_U = \lambda_L = 0$, <a
-          href="Copula_ko.html#sec2">코퓰러 문서 2절 참고</a>)로 근사하고 DAG에서 약한 화살표를 가지치기(조건부 독립 부여)합니다. 따라서 모델이 실제 수문 데이터의
+        NPBN은 계산 효율성과 해석적 조건부 갱신을 얻는 대신, 모든 의존성을 가우시안 코퓰러($\lambda_U = \lambda_L = 0$, <a href="Copula_ko.html#sec2">코퓰러
+          문서 2절 참고</a>)로 근사하고 DAG에서 약한 화살표를 가지치기(조건부 독립 부여)합니다. 따라서 모델이 실제 수문 데이터의
         상관구조를 왜곡 없이 보존하는지 <a href="#sec4">4절의 $d$-calibration 체계</a>로 반드시 정량 검증해야 합니다.
       </div>
     </section>
@@ -838,4 +850,3 @@
 </body>
 
 </html>
-

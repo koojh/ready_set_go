@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>코퓰러(Copula) 이론 및 가우시안 코퓰러 확률 추론 정리</title>
+  <title>수자원 운영에서의 코퓰러(Copula) 이론 및 가우시안 코퓰러 확률 추론 정리</title>
 
   <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
   <script>
@@ -352,10 +352,10 @@
   <div class="container">
     <header>
       <div class="subtitle">Probabilistic Dependence Modeling Reference</div>
-      <h1>코퓰러(Copula) 이론, 가우시안 코퓰러 및 순위 상관 정리</h1>
-      <div class="meta">대상 문헌: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
+      <h1>수자원 운영관리를 위한 코퓰러(Copula) 이론, 가우시안 코퓰러 및 순위 상관 정리</h1>
+      <!-- <div class="meta">대상 문헌: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
           probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
-      </div>
+      </div> -->
     </header>
 
     <nav class="toc">
@@ -385,7 +385,8 @@
       <ul>
         <li>$u_1 = F_1(x_1) \in [0, 1]$, &nbsp; $u_2 = F_2(x_2) \in [0, 1]$ (각 변수의 누적 백분위수)</li>
       </ul>
-      <p>일반적으로 $n$차원 다변량 네트워크로 확장할 때도 동일하게 적용되어, $n$개 연속확률변수의 결합누적분포함수는 다음과 같이 각 변수의 주변분포 $F_i(x_i)$와 $n$차원 코퓰러 $C$로 분리됩니다.</p>
+      <p>일반적으로 $n$차원 다변량 네트워크로 확장할 때도 동일하게 적용되어, $n$개 연속확률변수의 결합누적분포함수는 다음과 같이 각 변수의 주변분포 $F_i(x_i)$와 $n$차원 코퓰러 $C$로
+        분리됩니다.</p>
       <div class="math-block">
         $$F(x_1, x_2, \dots, x_n) = C\big(F_1(x_1), \, F_2(x_2), \, \dots, \, F_n(x_n)\big)$$
       </div>
@@ -576,4 +577,3 @@
 </body>
 
 </html>
-

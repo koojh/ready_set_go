@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Copula Theory, Gaussian Copula &amp; Rank Correlation Summary</title>
+  <title>Copula Theory, Gaussian Copula &amp; Rank Correlation in water resources management</title>
 
   <!-- MathJax 3 Configuration for crisp LaTeX rendering -->
   <script>
@@ -352,10 +352,10 @@
   <div class="container">
     <header>
       <div class="subtitle">Probabilistic Dependence Modeling Reference</div>
-      <h1>Copula Theory, Gaussian Copula, and Rank Correlation Summary</h1>
-      <div class="meta">Reference: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
+      <h1>Copula Theory, Gaussian Copula, and Rank Correlation in water resources management</h1>
+      <!-- <div class="meta">Reference: Flavia Giannini (TU Delft MSc Thesis) — <em>Real-time risk-aware control using
           probabilistic inflow forecasting with a Dynamic Bayesian Network approach: the Bui Dam as a Case Study</em>
-      </div>
+      </div> -->
     </header>
 
     <nav class="toc">
@@ -376,8 +376,10 @@
       <p>A copula is a linking function that completely separates each variable's individual probability distribution
         (its <strong>marginal distribution</strong>) from the joint statistical association among variables (the
         <strong>dependence structure</strong>). This allows zero-inflated, right-skewed rainfall ($\text{mm}$) and
-        heavy-tailed river discharge ($\text{m}^3/\text{s}$) to be modeled jointly without forcing either variable into a
-        distorted normal distribution.</p>
+        heavy-tailed river discharge ($\text{m}^3/\text{s}$) to be modeled jointly without forcing either variable into
+        a
+        distorted normal distribution.
+      </p>
 
       <h3>1.1 Sklar's Theorem</h3>
       <p>Let $F_1(x_1)$ and $F_2(x_2)$ be the individual cumulative distribution functions (CDFs) of continuous random
@@ -391,7 +393,8 @@
           probabilities of each variable)</li>
       </ul>
       <p>This theorem generalizes directly to an $n$-dimensional multivariate network, decomposing the joint CDF of $n$
-        continuous random variables into their individual marginal CDFs $F_i(x_i)$ and an $n$-dimensional copula $C$:</p>
+        continuous random variables into their individual marginal CDFs $F_i(x_i)$ and an $n$-dimensional copula $C$:
+      </p>
       <div class="math-block">
         $$F(x_1, x_2, \dots, x_n) = C\big(F_1(x_1), \, F_2(x_2), \, \dots, \, F_n(x_n)\big)$$
       </div>
@@ -427,13 +430,15 @@
         z_2^2}{2(1-\rho^2)} \right)$$
       </div>
       <ul>
-        <li>$\Phi^{-1}(\cdot)$: Inverse CDF (quantile function) of the standard normal distribution $\mathcal{N}(0, 1)$</li>
+        <li>$\Phi^{-1}(\cdot)$: Inverse CDF (quantile function) of the standard normal distribution $\mathcal{N}(0, 1)$
+        </li>
         <li>$\Phi_\rho$: Bivariate standard normal CDF parameterized by correlation coefficient $\rho$</li>
       </ul>
 
       <h3>2.2 True Meaning of the Parameter $\rho$</h3>
       <ul>
-        <li><strong>Not the Pearson correlation of raw data:</strong> $\rho$ is not the direct linear correlation between
+        <li><strong>Not the Pearson correlation of raw data:</strong> $\rho$ is not the direct linear correlation
+          between
           observed rainfall ($\text{mm}$) and river discharge ($\text{m}^3/\text{s}$).</li>
         <li><strong>Correlation in Latent Normal Space:</strong> It is the Pearson linear correlation
           ($\text{Corr}(Z_1, Z_2)$) between the latent normal scores $Z_1 = \Phi^{-1}(u_1)$ and $Z_2 = \Phi^{-1}(u_2)$
@@ -458,7 +463,8 @@
           </defs>
           <!-- Box 1 -->
           <rect x="10" y="25" width="155" height="95" rx="8" fill="#eff6ff" stroke="#2b6cb0" stroke-width="1.5" />
-          <text x="87" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Step 1: Percentile</text>
+          <text x="87" y="48" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e3a5f">Step 1:
+            Percentile</text>
           <text x="87" y="70" font-size="11" text-anchor="middle" fill="#334155">Observed rain x₁</text>
           <text x="87" y="88" font-size="11" font-weight="bold" text-anchor="middle" fill="#0d9488">u₁ = F₁(x₁) ∈
             [0,1]</text>
@@ -524,7 +530,8 @@
         <strong>Returning to Discharge Percentiles via Standard Normal CDF ($Z_2 \to U_2$)</strong>
         <p>Pass the conditional $Z_2$ distribution (or Monte Carlo samples drawn from it) back through the standard
           normal CDF $\Phi(\cdot)$. This maps values on $(-\infty, +\infty)$ back onto $[0, 1]$, yielding the
-          <strong>conditional percentile distribution of discharge $U_2 = \Phi(Z_2)$</strong>.</p>
+          <strong>conditional percentile distribution of discharge $U_2 = \Phi(Z_2)$</strong>.
+        </p>
       </div>
 
       <div class="pipeline-step">
@@ -537,7 +544,8 @@
 
       <div class="callout amber">
         <span class="callout-title">Structural Limitation of the Gaussian Copula (Zero Tail Dependence)</span>
-        Mathematically, whenever $\rho \lt 1$, both the upper and lower tail dependence coefficients of a Gaussian copula
+        Mathematically, whenever $\rho \lt 1$, both the upper and lower tail dependence coefficients of a Gaussian
+        copula
         equal zero ($\lambda_U = \lambda_L = 0$). Because joint extreme events become asymptotically independent, the
         Gaussian copula can slightly underestimate simultaneous extreme flood peaks during severe rainstorms.
       </div>
@@ -547,9 +555,11 @@
     <section id="sec3">
       <h2>3. Relationship with Spearman's Rank Correlation ($r$)</h2>
       <p>Spearman's rank correlation and copulas are not competing alternatives. <strong>The copula serves as the
-          probabilistic engine (the functional framework)</strong> for conditional inference and scenario sampling, while
+          probabilistic engine (the functional framework)</strong> for conditional inference and scenario sampling,
+        while
         <strong>Spearman's rank correlation serves as the empirical measurement and calibration tool</strong> that
-        populates the copula parameter $\rho$ from data.</p>
+        populates the copula parameter $\rho$ from data.
+      </p>
 
       <table>
         <thead>
@@ -602,4 +612,3 @@
 </body>
 
 </html>
-
