@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>From Attention to Transformer: A Complete Guide to Self-Attention, Multi-Head Attention &amp; Positional Encoding</title>
+
+  <!-- MathJax v3 Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        tags: 'none'
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-sub: #f1f5f9;
+      --bg-accent: #eff6ff;
+      --bg-analogy: #f0fdf4;
+      --bg-warn: #fefce8;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-color: #e2e8f0;
+      --primary: #1d4ed8;
+      --primary-dark: #1e3a8a;
+      --accent-green: #15803d;
+      --accent-amber: #b45309;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    main.container {
+      max-width: 960px;
+      margin: 24px auto 72px;
+      padding: 0 20px;
+    }
+
+    /* Back to index and language switcher navigation */
+    .back-nav {
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      background-color: var(--bg-card);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .back-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+      background-color: var(--bg-accent);
+    }
+
+    .back-btn.lang-btn {
+      color: var(--primary-dark);
+      border-color: #93c5fd;
+      background-color: var(--bg-accent);
+      font-weight: 600;
+    }
+
+    .back-btn.lang-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+      background-color: #dbeafe;
+    }
+
+    @media print {
+      .back-nav {
+        display: none;
+      }
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 36px 40px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero-card h1 {
+      margin: 0 0 12px;
+      font-size: 1.9rem;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-card p {
+      margin: 0;
+      opacity: 0.94;
+      font-size: 1.02rem;
+    }
+
+    .toc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 22px 28px;
+      margin-bottom: 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toc-card h2 {
+      margin: 0 0 12px;
+      font-size: 1.08rem;
+      color: var(--primary-dark);
+    }
+
+    .toc-list {
+      margin: 0;
+      padding-left: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 6px 24px;
+    }
+
+    .toc-list a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .toc-list a:hover {
+      text-decoration: underline;
+    }
+
+    section.topic-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 30px 34px;
+      margin-bottom: 26px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-badge {
+      display: inline-block;
+      background: var(--bg-accent);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 3px 11px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    section.topic-card h2 {
+      margin: 0 0 18px;
+      font-size: 1.42rem;
+      color: var(--text-main);
+      border-bottom: 2px solid var(--bg-sub);
+      padding-bottom: 10px;
+    }
+
+    section.topic-card h3 {
+      margin: 22px 0 10px;
+      font-size: 1.14rem;
+      color: var(--primary-dark);
+    }
+
+    p { margin: 0 0 14px; }
+    ul, ol { margin: 0 0 16px; padding-left: 22px; }
+    li { margin-bottom: 7px; }
+
+    .analogy-box {
+      background: var(--bg-analogy);
+      border-left: 4px solid var(--accent-green);
+      border-radius: 8px;
+      padding: 15px 18px;
+      margin: 16px 0;
+    }
+
+    .analogy-title {
+      font-weight: 700;
+      color: var(--accent-green);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .math-box {
+      background: var(--bg-sub);
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    .callout-box {
+      background: var(--bg-warn);
+      border-left: 4px solid var(--accent-amber);
+      border-radius: 8px;
+      padding: 15px 18px;
+      margin: 16px 0;
+    }
+
+    .flow-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--bg-sub);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px 14px;
+      margin: 18px 0;
+      text-align: center;
+      font-size: 0.92rem;
+    }
+
+    .flow-step {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      min-width: 140px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .flow-step strong {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 0.95rem;
+    }
+
+    .flow-arrow {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1.2rem;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.94rem;
+    }
+
+    table.data-table th,
+    table.data-table td {
+      border: 1px solid var(--border-color);
+      padding: 10px 13px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    table.data-table th {
+      background: var(--bg-sub);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .ref-list {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    .ref-list li {
+      margin-bottom: 10px;
+    }
+
+    .ref-list a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .ref-list a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 640px) {
+      section.topic-card { padding: 22px 18px; }
+      .hero-card { padding: 26px 20px; }
+      .flow-arrow { transform: rotate(90deg); }
+      .flow-diagram { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <nav class="back-nav">
+      <a class="back-btn" href="index.html">← Back to Index</a>
+      <a class="back-btn lang-btn" href="self_attention_guide_ko.html">한국어</a>
+    </nav>
+
+    <div class="hero-card">
+      <h1>From Attention to Transformer:<br />A Complete Guide to Self-Attention</h1>
+      <p>An intuitive and mathematically rigorous guide tracing the evolution from Seq2Seq RNNs to Attention, Self-Attention, Query–Key–Value projections, step-by-step matrix arithmetic, Multi-Head Attention, Positional Encoding, and end-to-end training in Large Language Models.</p>
+    </div>
+
+    <nav class="toc-card" aria-label="Table of Contents">
+      <h2>Table of Contents</h2>
+      <ol class="toc-list">
+        <li><a href="#sec1">1. Why Attention Was Invented: Focusing on What Matters</a></li>
+        <li><a href="#sec2">2. From Attention to Self-Attention: Finding Internal Context</a></li>
+        <li><a href="#sec3">3. Position in the Network, Embedding ($d_{\text{model}}$) &amp; Projection ($d_k, d_v$)</a></li>
+        <li><a href="#sec4">4. Intuitive Analogies &amp; Asymmetry of Query, Key, and Value</a></li>
+        <li><a href="#sec5">5. Scaled Dot-Product Attention: 4-Step Numerical Walkthrough</a></li>
+        <li><a href="#sec6">6. Multi-Head Attention: Parallel Perspectives</a></li>
+        <li><a href="#sec7">7. Positional Encoding: Injecting Order into Parallel Processing</a></li>
+        <li><a href="#sec8">8. Backpropagation Training &amp; Full LLM Workflow</a></li>
+        <li><a href="#sec9">9. References</a></li>
+      </ol>
+    </nav>
+
+    <!-- Section 1 -->
+    <section class="topic-card" id="sec1">
+      <span class="section-badge">Step 01 · Background</span>
+      <h2>1. Why Attention Was Invented: Focusing on What Matters</h2>
+      <p>When humans read or translate a long sentence, we do not give equal mental effort to every single word. Instead, we focus our attention on the key words that carry the core meaning while skimming supporting words.</p>
+      <p>Early neural machine translation relied on <strong>Encoder–Decoder Recurrent Neural Networks (Seq2Seq)</strong>, which suffered from two major bottlenecks:</p>
+      <ul>
+        <li><strong>Information Bottleneck:</strong> The Encoder read the entire source sentence sequentially and compressed all of its meaning into a <strong>single fixed-size context vector</strong>. For long sentences, early information was easily lost.</li>
+        <li><strong>Sequential Computation:</strong> Because RNNs process tokens one by one, computation could not be parallelized across time steps.</li>
+      </ul>
+      <div class="analogy-box">
+        <span class="analogy-title">Core Breakthrough: Look Back at All Encoder States Directly</span>
+        Instead of forcing the Decoder to rely solely on one compressed final vector, the <strong>Attention mechanism</strong> allows the Decoder at each output step to inspect <strong>all Encoder hidden states</strong> and assign higher weights to the source words most relevant to the word currently being generated.
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section class="topic-card" id="sec2">
+      <span class="section-badge">Step 02 · Self-Attention</span>
+      <h2>2. From Attention to Self-Attention: Finding Internal Context</h2>
+      <p>While classic Attention measures alignment <em>between</em> an output sequence (Decoder) and an input sequence (Encoder), <strong>Self-Attention</strong> measures relationships <strong>among words within the same sequence</strong>. Introduced in the Transformer architecture (Vaswani et al., 2017), Self-Attention eliminates recurrence entirely and models dependencies directly across any distance.</p>
+
+      <div class="analogy-box">
+        <span class="analogy-title">Context Resolution Example: What Does "it" Refer To?</span>
+        <ul>
+          <li>Sentence A: <em>"The <strong>animal</strong> didn't cross the street because <strong>it</strong> was too tired."</em> → <strong>it</strong> strongly attends to <strong>animal</strong>.</li>
+          <li>Sentence B: <em>"The animal didn't cross the <strong>street</strong> because <strong>it</strong> was too wide."</em> → <strong>it</strong> strongly attends to <strong>street</strong>.</li>
+        </ul>
+        Self-Attention computes pairwise relevance scores across all tokens in the sentence so that each token's representation absorbs surrounding context.
+      </div>
+    </section>
+
+    <!-- Section 3 -->
+    <section class="topic-card" id="sec3">
+      <span class="section-badge">Step 03 · Architecture &amp; Dimensions</span>
+      <h2>3. Position in the Network, Embedding ($d_{\text{model}}$) &amp; Projection ($d_k, d_v$)</h2>
+      <h3>1) A Learnable Layer Inside the Network (Not Pre-Analysis)</h3>
+      <p>Self-Attention is <strong>not</strong> an external statistical pre-processing step performed before feeding data into a neural network. Rather, it is a <strong>core learnable layer inside the network</strong> trained end-to-end via backpropagation. It produces a context-enriched matrix $Z$ and passes it directly into position-wise <strong>MLP (Feed-Forward Network)</strong> layers.</p>
+
+      <h3>2) What Is the Input Embedding Dimension ($d_{\text{model}}$)?</h3>
+      <p>Instead of representing each word as a single scalar number, neural networks map each token to a dense feature vector of length $d_{\text{model}}$. For a sequence of length $L$ with $d_{\text{model}} = 512$, the input matrix has shape:</p>
+      <div class="math-box">
+        $$X \in \mathbb{R}^{L \times d_{\text{model}}} \qquad (\text{e.g., } L=4,\; d_{\text{model}}=512)$$
+      </div>
+      <p>A higher-dimensional space allows different axes to encode syntactic roles, tense, semantic categories, and contextual nuances simultaneously.</p>
+
+      <h3>3) What Are the Projection Dimensions ($d_k, d_v$)?</h3>
+      <p><strong>Linear Projection</strong> multiplies the input embedding matrix $X$ by three learnable weight matrices ($W_Q, W_K, W_V$) to map tokens into specialized subspaces:</p>
+      <div class="math-box">
+        $$Q = X W_Q \in \mathbb{R}^{L \times d_k}, \qquad K = X W_K \in \mathbb{R}^{L \times d_k}, \qquad V = X W_V \in \mathbb{R}^{L \times d_v}$$
+        <small>Weight shapes: $W_Q \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_K \in \mathbb{R}^{d_{\text{model}} \times d_k}$, $W_V \in \mathbb{R}^{d_{\text{model}} \times d_v}$</small>
+      </div>
+      <p>Because $Q, K,$ and $V$ all originate from the <strong>same input sequence $X$</strong>, the mechanism is called <em>Self</em>-Attention. Multiplying by distinct matrices $W_Q, W_K, W_V$ allows each representation to play a distinct functional role.</p>
+    </section>
+
+    <!-- Section 4 -->
+    <section class="topic-card" id="sec4">
+      <span class="section-badge">Step 04 · Intuition &amp; Geometry</span>
+      <h2>4. Intuitive Analogies &amp; Asymmetry of Query, Key, and Value</h2>
+
+      <div class="analogy-box">
+        <span class="analogy-title">Everyday Analogy: Hotel Check-In / Database Retrieval</span>
+        <ul>
+          <li><strong>Query ($Q$):</strong> Walking up to the hotel reception desk and asking, <em>"I booked Room 512—how do I get in?"</em> (your search request).</li>
+          <li><strong>Key ($K$):</strong> The receptionist matching your request against the registry and handing you the <strong>room key</strong> (the indexing label).</li>
+          <li><strong>Value ($V$):</strong> Unlocking the door and accessing the actual <strong>contents inside the room</strong> (the information payload retrieved).</li>
+        </ul>
+      </div>
+
+      <h3>Why Does Query Represent "What Position $i$ Is Searching For"?</h3>
+      <p>This specialization is not manually programmed; it emerges naturally from the <strong>geometry of the inner product and gradient-based learning</strong>:</p>
+      <div class="math-box">
+        $$\text{score}(i, j) = q_i k_j^\top = \sum_{m=1}^{d_k} q_{i, m} \, k_{j, m}$$
+      </div>
+      <ul>
+        <li><strong>Dot-Product Alignment:</strong> Two vectors yield a large inner product when they share large values of the same sign along corresponding coordinates $m$. If token $j$ ("animal") produces a key $k_j$ with a strong activation on axis 3 indicating <em>"animate subject"</em>, and token $i$ ("it") needs an antecedent to minimize prediction loss, backpropagation updates $W_Q$ so that $q_i = x_i W_Q$ strongly activates axis 3.</li>
+        <li><strong>Asymmetry ($W_Q \neq W_K$):</strong> If $W_Q = W_K$, then $Q = K$ and $Q Q^\top$ is strictly symmetric ($A_{i,j} = A_{j,i}$). However, natural language relationships are asymmetric: how strongly <em>"it"</em> attends to <em>"animal"</em> need not equal how strongly <em>"animal"</em> attends to <em>"it"</em>. Keeping $W_Q$ and $W_K$ separate decouples the search criterion from the indexing criterion.</li>
+      </ul>
+    </section>
+
+    <!-- Section 5 -->
+    <section class="topic-card" id="sec5">
+      <span class="section-badge">Step 05 · Scaled Dot-Product Attention</span>
+      <h2>5. Scaled Dot-Product Attention: 4-Step Numerical Walkthrough</h2>
+      <p>The core Self-Attention equation is:</p>
+      <div class="math-box">
+        $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V$$
+      </div>
+
+      <div class="flow-diagram">
+        <div class="flow-step"><strong>1. Dot-Product Score</strong>$S = Q K^\top$<br /><small>($L \times L$)</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>2. Scaling</strong>$\tilde{S} = S / \sqrt{d_k}$<br /><small>Prevents saturation</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>3. Row Softmax</strong>$A = \text{softmax}(\tilde{S})$<br /><small>Each row sums to 1</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>4. Value Aggregation</strong>$Z = A V$<br /><small>($L \times d_v$)</small></div>
+      </div>
+
+      <p>Let us trace a concrete numerical example with sequence length $L=3$ and projection dimensions $d_k = 2, d_v = 2$:</p>
+      <div class="math-box">
+        $$Q = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix}, \qquad K = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 0 \end{bmatrix}, \qquad V = \begin{bmatrix} 2 & 0 \\ 0 & 4 \\ 1 & 2 \end{bmatrix}$$
+      </div>
+
+      <ol>
+        <li><strong>Step 1 — Raw Attention Scores ($S = Q K^\top \in \mathbb{R}^{3 \times 3}$):</strong><br />
+          Compute the dot product between every query row $i$ and every key row $j$.
+          <div class="math-box">
+            $$S = Q K^\top = \begin{bmatrix} 1 & 0 \\ 0 & 1 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 1 & 1 & 1 \end{bmatrix}$$
+          </div>
+        </li>
+        <li><strong>Step 2 — Scaling by $\sqrt{d_k}$ ($\tilde{S} = \dfrac{S}{\sqrt{2}}$, where $\sqrt{2} \approx 1.414$):</strong><br />
+          As $d_k$ grows large, dot products grow in variance, pushing Softmax into regions with extremely small gradients (vanishing gradients). Dividing by $\sqrt{d_k}$ keeps the variance around 1.
+          <div class="math-box">
+            $$\tilde{S} = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 1 & 1 & 1 \end{bmatrix} \approx \begin{bmatrix} 0.707 & 0 & 0.707 \\ 0 & 0.707 & 0 \\ 0.707 & 0.707 & 0.707 \end{bmatrix}$$
+          </div>
+        </li>
+        <li><strong>Step 3 — Row-Wise Softmax ($A = \text{softmax}(\tilde{S}) \in \mathbb{R}^{3 \times 3}$):</strong><br />
+          Softmax converts each row into a <strong>probability distribution of non-negative weights summing to $1.0$</strong>. Row $i$ specifies how position $i$ allocates 100% of its attention across positions $1, 2,$ and $3$.
+          <ul>
+            <li>Row 1 ($\exp(0.707) \approx 2.028$, $\exp(0) = 1.0$, sum $\approx 5.056$): $[0.401,\; 0.198,\; 0.401]$</li>
+            <li>Row 2 ($\exp(0) = 1.0$, $\exp(0.707) \approx 2.028$, sum $\approx 4.028$): $[0.248,\; 0.504,\; 0.248]$</li>
+            <li>Row 3 (all entries equal to $0.707$): $[0.333,\; 0.333,\; 0.333]$</li>
+          </ul>
+          <div class="math-box">
+            $$A \approx \begin{bmatrix} 0.401 & 0.198 & 0.401 \\ 0.248 & 0.504 & 0.248 \\ 0.333 & 0.333 & 0.333 \end{bmatrix}$$
+          </div>
+        </li>
+        <li><strong>Step 4 — Weighted Sum of Values ($Z = A V \in \mathbb{R}^{3 \times 2}$):</strong><br />
+          Multiply the attention weight matrix $A$ by $V$ to aggregate context. For instance, the top-left entry is $0.401 \times 2 + 0.198 \times 0 + 0.401 \times 1 \approx 1.203$.
+          <div class="math-box">
+            $$Z = A V \approx \begin{bmatrix} 0.401 & 0.198 & 0.401 \\ 0.248 & 0.504 & 0.248 \\ 0.333 & 0.333 & 0.333 \end{bmatrix} \begin{bmatrix} 2 & 0 \\ 0 & 4 \\ 1 & 2 \end{bmatrix} \approx \begin{bmatrix} 1.203 & 1.594 \\ 0.744 & 2.512 \\ 1.000 & 2.000 \end{bmatrix}$$
+          </div>
+        </li>
+      </ol>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Matrix</th>
+            <th>Shape</th>
+            <th>Interpretation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Attention Matrix $A$</strong></td>
+            <td>$L \times L$ ($3 \times 3$)</td>
+            <td>Row-stochastic weight table where each row sums to $1$. Entry $A_{i,j}$ indicates how much position $i$ attends to position $j$.</td>
+          </tr>
+          <tr>
+            <td><strong>Output Matrix $Z$</strong></td>
+            <td>$L \times d_v$ ($3 \times 2$)</td>
+            <td>Preserves sequence length $L$, updating every token into a context-aware representation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 6 -->
+    <section class="topic-card" id="sec6">
+      <span class="section-badge">Step 06 · Multi-Head Attention</span>
+      <h2>6. Multi-Head Attention: Parallel Perspectives</h2>
+      <p>Rather than performing a single attention pass, Transformers split the representations into <strong>$h$ parallel attention heads</strong>—a mechanism called <strong>Multi-Head Attention</strong>.</p>
+
+      <div class="analogy-box">
+        <span class="analogy-title">Intuitive Analogy: A Team Brainstorming Session</span>
+        Analyzing a sentence with a single head can over-focus on one aspect (such as grammatical verb agreement). With 8 heads working in parallel, different heads can specialize in different relationships simultaneously—such as pronoun coreference, tense, modifier attachment, and semantic similarity—and combine their findings afterward.
+      </div>
+
+      <ul>
+        <li><strong>Split &amp; Parallelize:</strong> With $d_{\text{model}} = 512$ and $h = 8$ heads, each head projects into $d_k = d_v = 512 / 8 = 64$ dimensions and computes $\text{head}_i \in \mathbb{R}^{L \times 64}$ independently.</li>
+        <li><strong>Concatenate &amp; Fuse:</strong> All 8 head outputs are concatenated back into $\mathbb{R}^{L \times 512}$ and passed through a final linear projection $W_O \in \mathbb{R}^{512 \times 512}$:
+          <div class="math-box">
+            $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W_O$$
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Section 7 -->
+    <section class="topic-card" id="sec7">
+      <span class="section-badge">Step 07 · Positional Encoding</span>
+      <h2>7. Positional Encoding: Injecting Order into Parallel Processing</h2>
+      <p>Because the Transformer processes the entire sequence matrix $X$ in parallel rather than step-by-step like an RNN, dot-product attention alone has no built-in awareness of word order.</p>
+      <div class="callout-box">
+        <strong>Example:</strong> <em>"The dog chased the cat"</em> and <em>"The cat chased the dog"</em> have opposite meanings, yet without positional cues, Self-Attention treats them as identical sets of tokens.
+      </div>
+      <p>To inject sequence order, a <strong>Positional Encoding</strong> vector is added to each token's input embedding before the first layer, using sinusoidal functions of different frequencies:</p>
+      <div class="math-box">
+        $$PE_{(pos, 2i)} = \sin\left(\frac{pos}{10000^{2i / d_{\text{model}}}}\right), \qquad PE_{(pos, 2i+1)} = \cos\left(\frac{pos}{10000^{2i / d_{\text{model}}}}\right)$$
+      </div>
+      <ul>
+        <li><strong>Why Sinusoids Instead of Raw Integers ($1, 2, 3, \dots$)?</strong> Raw integers grow unboundedly for long sequences and destabilize training. Sine and cosine values stay bounded within $[-1, 1]$ regardless of sequence length and allow the model to represent relative token offsets cleanly via linear transformations.</li>
+      </ul>
+    </section>
+
+    <!-- Section 8 -->
+    <section class="topic-card" id="sec8">
+      <span class="section-badge">Step 08 · Training &amp; LLM Workflow</span>
+      <h2>8. Backpropagation Training &amp; Full LLM Workflow</h2>
+      <h3>1) How Are $W_Q, W_K, W_V$ Learned?</h3>
+      <p>$Q, K,$ and $V$ are never hand-crafted. Instead, <strong>$W_Q, W_K, W_V$ are randomly initialized and updated via gradient descent</strong> to minimize prediction loss:</p>
+      <ol>
+        <li><strong>Forward Pass:</strong> Compute $Q = XW_Q$, $K = XW_K$, $V = XW_V$, and $Z = AV$.</li>
+        <li><strong>Loss Evaluation:</strong> Pass $Z$ through downstream MLP (FFN) and output layers to generate predictions $\hat{Y}$ and compute task loss $\mathcal{L}(\hat{Y}, Y)$.</li>
+        <li><strong>Backpropagation &amp; Update:</strong> Compute gradients via the chain rule and update parameters:
+          <div class="math-box">
+            $$W_Q \leftarrow W_Q - \eta \frac{\partial \mathcal{L}}{\partial W_Q}, \qquad W_K \leftarrow W_K - \eta \frac{\partial \mathcal{L}}{\partial W_K}, \qquad W_V \leftarrow W_V - \eta \frac{\partial \mathcal{L}}{\partial W_V}$$
+          </div>
+        </li>
+      </ol>
+
+      <h3>2) End-to-End Pipeline in Large Language Models (LLMs)</h3>
+      <div class="flow-diagram">
+        <div class="flow-step"><strong>User Prompt</strong>Tokenize + Embed + PE<br /><small>$X \in \mathbb{R}^{L \times d_{\text{model}}}$</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>Self-Attention</strong>Gather contextual weights<br /><small>Context matrix $Z$</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>MLP (FFN)</strong>Position-wise non-linear map<br /><small>Feature refinement</small></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><strong>Next-Token Prediction</strong>Vocabulary probability distribution<br /><small>Linear + Softmax</small></div>
+      </div>
+      <p>In short, within an LLM, <strong>Self-Attention serves as the contextual routing stage</strong> that decides how much information to gather from surrounding tokens, while the subsequent <strong>MLP (FFN) serves as the non-linear transformation stage</strong> that processes those gathered representations to predict the next token.</p>
+    </section>
+
+    <!-- Section 9: References -->
+    <section class="topic-card" id="sec9">
+      <span class="section-badge">References</span>
+      <h2>9. References</h2>
+      <ol class="ref-list">
+        <li>
+          Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., &amp; Polosukhin, I. (2017).
+          <em>Attention Is All You Need</em>.
+          Advances in Neural Information Processing Systems (NeurIPS), 30, 5998–6008. (arXiv:1706.03762)
+        </li>
+        <li>
+          Coding Opera (Master.M). (2022). <em>3. Attention [NLP Explained Simply]</em>.
+          <a href="https://codingopera.tistory.com/41" target="_blank" rel="noopener noreferrer">https://codingopera.tistory.com/41</a>
+        </li>
+        <li>
+          Coding Opera (Master.M). (2022). <em>4-1. Transformer (Self Attention) [NLP Explained Simply]</em>.
+          <a href="https://codingopera.tistory.com/43" target="_blank" rel="noopener noreferrer">https://codingopera.tistory.com/43</a>
+        </li>
+        <li>
+          Coding Opera (Master.M). (2022). <em>4-2. Transformer (Multi-head Attention) [NLP Explained Simply]</em>.
+          <a href="https://codingopera.tistory.com/44" target="_blank" rel="noopener noreferrer">https://codingopera.tistory.com/44</a>
+        </li>
+        <li>
+          Coding Opera (Master.M). (2022). <em>4-3. Transformer (Positional Encoding) [NLP Explained Simply]</em>.
+          <a href="https://codingopera.tistory.com/45" target="_blank" rel="noopener noreferrer">https://codingopera.tistory.com/45</a>
+        </li>
+      </ol>
+    </section>
+
+    <footer>
+      Self-Attention &amp; Transformer Architecture Study Guide — English Edition
+    </footer>
+  </main>
+</body>
+</html>
